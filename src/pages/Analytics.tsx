@@ -9,7 +9,6 @@ import {
 } from "../config";
 
 const REFRESH_MS = 15000;
-// show up to 9 tiles (3 x 3 grid)
 const MAX_STREAMS = 9;
 
 type CombinedAnalytics = {
@@ -19,11 +18,6 @@ type CombinedAnalytics = {
 
 type AnalyticsMap = Record<string, CombinedAnalytics>;
 
-/**
- * Smart HLS hook:
- * - isLive = true  → low latency, live tuning
- * - isLive = false → VOD tuning + auto-loop
- */
 function useHlsPlayer(hlsUrl: string, isLive: boolean) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -33,10 +27,8 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
 
     let hls: Hls | null = null;
 
-    // make sure the tag is muted (for autoplay)
     video.muted = true;
-
-    // recorded streams should loop forever
+    // recorded streams loop forever
     video.loop = !isLive;
 
     const handlePlay = () => {
@@ -50,14 +42,14 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
 
     const handleEnded = () => {
       if (!isLive) {
-        // for recorded mode, restart from the beginning
+        // restart from beginning in recorded mode
         video.currentTime = 0;
         handlePlay();
       }
     };
 
     if (Hls.isSupported()) {
-      const config: Hls.OptionalConfig = isLive
+      const config = isLive
         ? {
             enableWorker: true,
             lowLatencyMode: true,
@@ -67,7 +59,6 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
             maxBufferLength: 5,
           }
         : {
-            // VOD mode – bigger buffer, no low latency
             enableWorker: true,
             lowLatencyMode: false,
             backBufferLength: 30,
@@ -80,7 +71,6 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
 
       hls.on(Hls.Events.MANIFEST_PARSED, handlePlay);
       hls.on(Hls.Events.FRAG_LOADED, () => {
-        // keeps it going if browser pauses
         if (!video.paused) handlePlay();
       });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
@@ -123,18 +113,18 @@ function AnalyticsCard({
   return (
     <div className="stream-card">
       <div className="stream-header">
-        <span className="live-pill">
-          {isLive ? "LIVE" : "OFFLINE"}
-        </span>
+        <span className="live-pill">{isLive ? "LIVE" : "OFFLINE"}</span>
         <div className="stream-meta">
-          <div className="stream-title">{stream.pilotName || "Unknown Pilot"}</div>
+          <div className="stream-title">
+            {stream.pilotName || "Unknown Pilot"}
+          </div>
           <div className="stream-subtitle">
             {stream.place || "Unknown Location"} — Analytics
           </div>
         </div>
       </div>
 
-      {/* Video */}
+      {/* Video with seek slider */}
       <div className="stream-video-wrapper" style={{ marginTop: "0.6rem" }}>
         <video
           ref={videoRef}
@@ -273,7 +263,6 @@ export default function Analytics() {
         if (!res.ok) throw new Error("Failed to fetch streams");
         const json: Stream[] = await res.json();
         if (!cancelled) {
-          // newest first
           const sorted = [...json].sort(
             (a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)
           );
@@ -329,7 +318,8 @@ export default function Analytics() {
                 combined.people = (await peopleRes.json()) as AnalyticsResponse;
               }
               if (vehicleRes.ok) {
-                combined.vehicles = (await vehicleRes.json()) as AnalyticsResponse;
+                combined.vehicles =
+                  (await vehicleRes.json()) as AnalyticsResponse;
               }
 
               return { key, combined };
