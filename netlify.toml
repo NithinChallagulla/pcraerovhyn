@@ -12,6 +12,13 @@
   status = 200
   force = true
 
+# Proxy for HLS video segments/playlists
+[[redirects]]
+  from = "/hls/*"
+  to = "http://34.93.170.150/hls/:splat"
+  status = 200
+  force = true
+
 # SPA fallback: any other route -> index.html
 [[redirects]]
   from = "/*"
