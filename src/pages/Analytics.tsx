@@ -28,10 +28,9 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
     let hls: Hls | null = null;
 
     video.muted = true;
-    // recorded streams loop forever
     video.loop = !isLive;
 
-    const handlePlay = () => {
+    const safePlay = () => {
       try {
         const p = video.play();
         if (p && (p as any).catch) (p as any).catch(() => {});
@@ -40,11 +39,23 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
       }
     };
 
+    // for recorded streams, force hard loop when Hls hits EOS
+    const handleBufferEos = () => {
+      if (!video || !hls || isLive) return;
+      try {
+        video.currentTime = 0;
+        hls.stopLoad();
+        hls.startLoad();
+        safePlay();
+      } catch {
+        // ignore
+      }
+    };
+
     const handleEnded = () => {
       if (!isLive) {
-        // restart from beginning in recorded mode
         video.currentTime = 0;
-        handlePlay();
+        safePlay();
       }
     };
 
@@ -69,20 +80,29 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
 
-      hls.on(Hls.Events.MANIFEST_PARSED, handlePlay);
+      hls.on(Hls.Events.MANIFEST_PARSED, safePlay);
       hls.on(Hls.Events.FRAG_LOADED, () => {
-        if (!video.paused) handlePlay();
+        if (!video.paused) safePlay();
       });
+
+      if (!isLive) {
+        hls.on(Hls.Events.BUFFER_EOS, handleBufferEos);
+      }
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = hlsUrl;
-      video.addEventListener("loadedmetadata", handlePlay);
+      video.addEventListener("loadedmetadata", safePlay);
     }
 
     video.addEventListener("ended", handleEnded);
 
     return () => {
       video.removeEventListener("ended", handleEnded);
-      if (hls) hls.destroy();
+      if (hls) {
+        if (!isLive) {
+          hls.off(Hls.Events.BUFFER_EOS, handleBufferEos);
+        }
+        hls.destroy();
+      }
       if (video) {
         video.removeAttribute("src");
         // @ts-ignore
@@ -93,6 +113,7 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
 
   return videoRef;
 }
+
 
 function AnalyticsCard({
   stream,
