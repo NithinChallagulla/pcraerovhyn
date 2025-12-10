@@ -11,3 +11,9 @@
   to = "http://35.244.22.167:8000/:splat"
   status = 200
   force = true
+
+# SPA fallback: any other route -> index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
