@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { API_BASE, type Stream } from "../config";
 
-const REFRESH_MS = 8000; // poll every 8s
+const REFRESH_MS = 8000; // refresh list every 8s
 
-function useHlsPlayer(hlsUrl: string) {
+function useHlsPlayer(hlsUrl: string, isLive: boolean) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -14,43 +14,59 @@ function useHlsPlayer(hlsUrl: string) {
 
     let hls: Hls | null = null;
 
-    // loop last 5 min forever when the playlist ends
-    video.loop = true;
+    video.muted = true;
+    video.loop = !isLive;
 
     const safePlay = () => {
       try {
-        video.muted = true;
         const p = video.play();
-        if (p && (p as any).catch) {
-          (p as any).catch(() => {
-            // autoplay might be blocked, user can click manually
-          });
-        }
+        if (p && (p as any).catch) (p as any).catch(() => {});
       } catch {
-        // ignore
+        // ignore autoplay block
+      }
+    };
+
+    const handleEnded = () => {
+      if (!isLive) {
+        video.currentTime = 0;
+        safePlay();
       }
     };
 
     if (Hls.isSupported()) {
-      hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: false,       // smoother playback, less stutter
-        backBufferLength: 90,
-        maxBufferLength: 30,
-        maxMaxBufferLength: 60,
-      });
+      const config = isLive
+        ? {
+            enableWorker: true,
+            lowLatencyMode: true,
+            liveSyncDuration: 1,
+            liveMaxLatencyDuration: 2,
+            backBufferLength: 0,
+            maxBufferLength: 5,
+          }
+        : {
+            enableWorker: true,
+            lowLatencyMode: false,
+            backBufferLength: 30,
+            maxBufferLength: 30,
+          };
 
+      hls = new Hls(config);
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, safePlay);
-      hls.on(Hls.Events.FRAG_LOADED, safePlay);
+      hls.on(Hls.Events.FRAG_LOADED, () => {
+        if (!video.paused) safePlay();
+      });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = hlsUrl;
       video.addEventListener("loadedmetadata", safePlay);
     }
 
+    video.addEventListener("ended", handleEnded);
+
     return () => {
+      video.removeEventListener("ended", handleEnded);
       if (hls) hls.destroy();
       if (video) {
         video.removeAttribute("src");
@@ -58,14 +74,14 @@ function useHlsPlayer(hlsUrl: string) {
         if (video.load) video.load();
       }
     };
-  }, [hlsUrl]);
+  }, [hlsUrl, isLive]);
 
   return videoRef;
 }
 
 function StreamCard({ stream }: { stream: Stream }) {
-  const videoRef = useHlsPlayer(stream.hlsUrl);
   const isLive = stream.status === "LIVE";
+  const videoRef = useHlsPlayer(stream.hlsUrl, isLive);
 
   const handleFullscreen = () => {
     const video = videoRef.current;
@@ -96,9 +112,11 @@ function StreamCard({ stream }: { stream: Stream }) {
   return (
     <div className="stream-card">
       <div className="stream-header">
-        <span className="live-pill">{isLive ? "LIVE" : "REPLAY"}</span>
+        <span className="live-pill">{isLive ? "LIVE" : "OFFLINE"}</span>
         <div className="stream-meta">
-          <div className="stream-title">{stream.pilotName || "Unknown Pilot"}</div>
+          <div className="stream-title">
+            {stream.pilotName || "Unknown Pilot"}
+          </div>
           <div className="stream-subtitle">
             {stream.place || "Unknown Location"}
           </div>
@@ -111,7 +129,7 @@ function StreamCard({ stream }: { stream: Stream }) {
           className="stream-video"
           muted
           playsInline
-          controls   // ✅ show native seek bar, etc.
+          controls   // seek bar visible
         />
         <div className="stream-controls">
           <button onClick={handleFullscreen}>Fullscreen</button>
@@ -141,15 +159,15 @@ export default function DroneFeeds() {
       try {
         setLoading(true);
         setError(null);
-
         const res = await fetch(`${API_BASE}/streams`);
         if (!res.ok) throw new Error("Failed to fetch streams");
         const json: Stream[] = await res.json();
-        if (cancelled) return;
-
-        // ✅ keep all tiles permanently (except PENDING)
-        const visible = json.filter((s) => s.status !== "PENDING");
-        setStreams(visible);
+        if (!cancelled) {
+          const sorted = [...json].sort(
+            (a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)
+          );
+          setStreams(sorted);
+        }
       } catch (err: any) {
         console.error(err);
         if (!cancelled) {
@@ -171,9 +189,10 @@ export default function DroneFeeds() {
   return (
     <div className="page">
       <div className="page-header">
-        <h2>Live Drone Feeds</h2>
+        <h2>Live & Recorded Drone Feeds</h2>
         <p>
-          All active and recorded drone streams. LIVE shows realtime, REPLAY loops the last 5 minutes.
+          All drone streams for this event. Live streams switch to recorded
+          playback automatically when pilots stop.
         </p>
       </div>
 
