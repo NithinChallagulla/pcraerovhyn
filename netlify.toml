@@ -1,5 +1,13 @@
+# Proxy for RTMP backend (streams service)
 [[redirects]]
   from = "/api/*"
-  to = "http://34.93.170.150:44009/:splat"
+  to = "http://34.93.170.150:4000/:splat"
+  status = 200
+  force = true
+
+# Proxy for analytics backend
+[[redirects]]
+  from = "/analytics-api/*"
+  to = "http://35.244.22.167:8000/:splat"
   status = 200
   force = true
