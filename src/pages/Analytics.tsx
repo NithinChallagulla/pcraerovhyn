@@ -10,7 +10,6 @@ import {
 
 const REFRESH_MS = 15000;
 const MAX_STREAMS = 6;
-const RECENT_MS = 5 * 60 * 1000; // 5 minutes
 
 type CombinedAnalytics = {
   people?: AnalyticsResponse;
@@ -28,6 +27,9 @@ function useHlsPlayer(hlsUrl: string) {
 
     let hls: Hls | null = null;
 
+    // loop last 5 min forever for ended streams
+    video.loop = true;
+
     const safePlay = () => {
       try {
         video.muted = true;
@@ -39,11 +41,10 @@ function useHlsPlayer(hlsUrl: string) {
     if (Hls.isSupported()) {
       hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: true,
-        liveSyncDuration: 1,
-        liveMaxLatencyDuration: 2,
-        backBufferLength: 0,
-        maxBufferLength: 5,
+        lowLatencyMode: false,
+        backBufferLength: 90,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
       });
 
       hls.loadSource(hlsUrl);
@@ -80,13 +81,13 @@ function AnalyticsCard({
   const videoRef = useHlsPlayer(stream.hlsUrl);
   const people = combined?.people;
   const vehicles = combined?.vehicles;
-
   const hasAnyData = !!people || !!vehicles;
+  const isLive = stream.status === "LIVE";
 
   return (
     <div className="stream-card">
       <div className="stream-header">
-        <span className="live-pill">LIVE</span>
+        <span className="live-pill">{isLive ? "LIVE" : "REPLAY"}</span>
         <div className="stream-meta">
           <div className="stream-title">{stream.pilotName || "Unknown Pilot"}</div>
           <div className="stream-subtitle">
@@ -102,7 +103,7 @@ function AnalyticsCard({
           className="stream-video"
           muted
           playsInline
-          controls={false}
+          controls   // ✅ seek bar
         />
       </div>
 
@@ -204,18 +205,18 @@ function AnalyticsCard({
 }
 
 export default function Analytics() {
-  const [liveStreams, setLiveStreams] = useState<Stream[]>([]);
+  const [streams, setStreams] = useState<Stream[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsMap>({});
   const [error, setError] = useState<string | null>(null);
   const [loadingStreams, setLoadingStreams] = useState(false);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const analyzingRef = useRef(false);
 
-  // Fetch recent (LIVE or ENDED within 5 min)
+  // Fetch ALL non-pending streams (permanent tiles)
   useEffect(() => {
     let cancelled = false;
 
-    const fetchRecent = async () => {
+    const fetchAll = async () => {
       try {
         setLoadingStreams(true);
         setError(null);
@@ -225,30 +226,20 @@ export default function Analytics() {
         const json: Stream[] = await res.json();
         if (cancelled) return;
 
-        const now = Date.now();
-
-        const visible = json.filter((s) => {
-          if (s.status === "PENDING") return false;
-          if (s.status === "LIVE") return true;
-          if (s.status === "ENDED" && typeof s.endedAt === "number") {
-            return now - s.endedAt <= RECENT_MS;
-          }
-          return false;
-        });
-
-        setLiveStreams(visible);
+        const visible = json.filter((s) => s.status !== "PENDING");
+        setStreams(visible);
       } catch (err: any) {
         console.error(err);
         if (!cancelled) {
-          setError(err.message || "Failed to load live streams");
+          setError(err.message || "Failed to load streams");
         }
       } finally {
         if (!cancelled) setLoadingStreams(false);
       }
     };
 
-    fetchRecent();
-    const id = window.setInterval(fetchRecent, REFRESH_MS);
+    fetchAll();
+    const id = window.setInterval(fetchAll, REFRESH_MS);
     return () => {
       cancelled = true;
       window.clearInterval(id);
@@ -257,14 +248,14 @@ export default function Analytics() {
 
   // Run analytics for people + vehicles
   useEffect(() => {
-    if (liveStreams.length === 0) return;
+    if (streams.length === 0) return;
     if (analyzingRef.current) return;
 
     const runAnalytics = async () => {
       analyzingRef.current = true;
       setLoadingAnalytics(true);
       try {
-        const subset = liveStreams.slice(0, MAX_STREAMS);
+        const subset = streams.slice(0, MAX_STREAMS);
 
         const results = await Promise.all(
           subset.map(async (stream) => {
@@ -322,28 +313,28 @@ export default function Analytics() {
     runAnalytics();
     const id = window.setInterval(runAnalytics, REFRESH_MS);
     return () => window.clearInterval(id);
-  }, [liveStreams]);
+  }, [streams]);
 
   return (
     <div className="page">
       <div className="page-header">
         <h2>Analytics</h2>
         <p className="card-subtitle">
-          Live people & vehicle counts for each active or recent drone stream.
+          Live people & vehicle counts for each active or recorded drone stream.
         </p>
       </div>
 
       <div style={{ marginTop: "1.2rem" }}>
-        {loadingStreams && <div className="loading">Refreshing live streams…</div>}
-        {!loadingStreams && liveStreams.length === 0 && (
-          <div className="empty-state">No live or recent streams.</div>
+        {loadingStreams && <div className="loading">Refreshing streams…</div>}
+        {!loadingStreams && streams.length === 0 && (
+          <div className="empty-state">No streams yet.</div>
         )}
         {error && <div className="error-box">{error}</div>}
       </div>
 
-      {liveStreams.length > 0 && (
+      {streams.length > 0 && (
         <div className="feeds-grid" style={{ marginTop: "1.2rem" }}>
-          {liveStreams.slice(0, MAX_STREAMS).map((stream) => (
+          {streams.slice(0, MAX_STREAMS).map((stream) => (
             <AnalyticsCard
               key={stream.streamKey}
               stream={stream}
