@@ -9,7 +9,8 @@ import {
 } from "../config";
 
 const REFRESH_MS = 15000;
-const MAX_STREAMS = 6;
+// show up to 9 tiles (3 x 3 grid)
+const MAX_STREAMS = 9;
 
 type CombinedAnalytics = {
   people?: AnalyticsResponse;
@@ -18,7 +19,12 @@ type CombinedAnalytics = {
 
 type AnalyticsMap = Record<string, CombinedAnalytics>;
 
-function useHlsPlayer(hlsUrl: string) {
+/**
+ * Smart HLS hook:
+ * - isLive = true  → low latency, live tuning
+ * - isLive = false → VOD tuning + auto-loop
+ */
+function useHlsPlayer(hlsUrl: string, isLive: boolean) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -27,36 +33,65 @@ function useHlsPlayer(hlsUrl: string) {
 
     let hls: Hls | null = null;
 
-    // loop last 5 min forever for ended streams
-    video.loop = true;
+    // make sure the tag is muted (for autoplay)
+    video.muted = true;
 
-    const safePlay = () => {
+    // recorded streams should loop forever
+    video.loop = !isLive;
+
+    const handlePlay = () => {
       try {
-        video.muted = true;
         const p = video.play();
         if (p && (p as any).catch) (p as any).catch(() => {});
-      } catch {}
+      } catch {
+        // ignore autoplay errors
+      }
+    };
+
+    const handleEnded = () => {
+      if (!isLive) {
+        // for recorded mode, restart from the beginning
+        video.currentTime = 0;
+        handlePlay();
+      }
     };
 
     if (Hls.isSupported()) {
-      hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: false,
-        backBufferLength: 90,
-        maxBufferLength: 30,
-        maxMaxBufferLength: 60,
-      });
+      const config: Hls.OptionalConfig = isLive
+        ? {
+            enableWorker: true,
+            lowLatencyMode: true,
+            liveSyncDuration: 1,
+            liveMaxLatencyDuration: 2,
+            backBufferLength: 0,
+            maxBufferLength: 5,
+          }
+        : {
+            // VOD mode – bigger buffer, no low latency
+            enableWorker: true,
+            lowLatencyMode: false,
+            backBufferLength: 30,
+            maxBufferLength: 30,
+          };
 
+      hls = new Hls(config);
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, safePlay);
-      hls.on(Hls.Events.FRAG_LOADED, safePlay);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, handlePlay);
+      hls.on(Hls.Events.FRAG_LOADED, () => {
+        // keeps it going if browser pauses
+        if (!video.paused) handlePlay();
+      });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = hlsUrl;
-      video.addEventListener("loadedmetadata", safePlay);
+      video.addEventListener("loadedmetadata", handlePlay);
     }
 
+    video.addEventListener("ended", handleEnded);
+
     return () => {
+      video.removeEventListener("ended", handleEnded);
       if (hls) hls.destroy();
       if (video) {
         video.removeAttribute("src");
@@ -64,7 +99,7 @@ function useHlsPlayer(hlsUrl: string) {
         if (video.load) video.load();
       }
     };
-  }, [hlsUrl]);
+  }, [hlsUrl, isLive]);
 
   return videoRef;
 }
@@ -78,16 +113,19 @@ function AnalyticsCard({
   combined?: CombinedAnalytics;
   loadingAnalytics: boolean;
 }) {
-  const videoRef = useHlsPlayer(stream.hlsUrl);
+  const isLive = stream.status === "LIVE";
+  const videoRef = useHlsPlayer(stream.hlsUrl, isLive);
   const people = combined?.people;
   const vehicles = combined?.vehicles;
+
   const hasAnyData = !!people || !!vehicles;
-  const isLive = stream.status === "LIVE";
 
   return (
     <div className="stream-card">
       <div className="stream-header">
-        <span className="live-pill">{isLive ? "LIVE" : "REPLAY"}</span>
+        <span className="live-pill">
+          {isLive ? "LIVE" : "OFFLINE"}
+        </span>
         <div className="stream-meta">
           <div className="stream-title">{stream.pilotName || "Unknown Pilot"}</div>
           <div className="stream-subtitle">
@@ -103,13 +141,13 @@ function AnalyticsCard({
           className="stream-video"
           muted
           playsInline
-          controls   // ✅ seek bar
+          controls
         />
       </div>
 
       {/* Stream key */}
       <div style={{ marginTop: "0.6rem" }}>
-        <div className="card-subtitle">Stream Key</div>
+        <div className="card-subtitle">Key</div>
         <code className="stream-key-value">{stream.streamKey}</code>
       </div>
 
@@ -192,6 +230,17 @@ function AnalyticsCard({
               </div>
             </div>
           )}
+
+          {/* Updated-at hint */}
+          {(people || vehicles) && (
+            <div className="hint">
+              Updated at{" "}
+              {new Date(
+                1000 *
+                  Math.max(people?.timestamp ?? 0, vehicles?.timestamp ?? 0)
+              ).toLocaleTimeString()}
+            </div>
+          )}
         </div>
       )}
 
@@ -212,41 +261,41 @@ export default function Analytics() {
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const analyzingRef = useRef(false);
 
-  // Fetch ALL non-pending streams (permanent tiles)
+  // Fetch ALL streams (LIVE + ENDED)
   useEffect(() => {
     let cancelled = false;
 
-    const fetchAll = async () => {
+    const fetchStreams = async () => {
       try {
         setLoadingStreams(true);
         setError(null);
-
         const res = await fetch(`${API_BASE}/streams`);
         if (!res.ok) throw new Error("Failed to fetch streams");
         const json: Stream[] = await res.json();
-        if (cancelled) return;
-
-        const visible = json.filter((s) => s.status !== "PENDING");
-        setStreams(visible);
+        if (!cancelled) {
+          // newest first
+          const sorted = [...json].sort(
+            (a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)
+          );
+          setStreams(sorted);
+        }
       } catch (err: any) {
         console.error(err);
-        if (!cancelled) {
-          setError(err.message || "Failed to load streams");
-        }
+        if (!cancelled) setError(err.message || "Failed to load streams");
       } finally {
         if (!cancelled) setLoadingStreams(false);
       }
     };
 
-    fetchAll();
-    const id = window.setInterval(fetchAll, REFRESH_MS);
+    fetchStreams();
+    const id = window.setInterval(fetchStreams, REFRESH_MS);
     return () => {
       cancelled = true;
       window.clearInterval(id);
     };
   }, []);
 
-  // Run analytics for people + vehicles
+  // Run analytics for both people + vehicles
   useEffect(() => {
     if (streams.length === 0) return;
     if (analyzingRef.current) return;
@@ -279,7 +328,6 @@ export default function Analytics() {
               if (peopleRes.ok) {
                 combined.people = (await peopleRes.json()) as AnalyticsResponse;
               }
-
               if (vehicleRes.ok) {
                 combined.vehicles = (await vehicleRes.json()) as AnalyticsResponse;
               }
@@ -296,10 +344,7 @@ export default function Analytics() {
           const next: AnalyticsMap = { ...prev };
           for (const item of results) {
             if (item && item.combined) {
-              next[item.key] = {
-                ...next[item.key],
-                ...item.combined,
-              };
+              next[item.key] = { ...next[item.key], ...item.combined };
             }
           }
           return next;
