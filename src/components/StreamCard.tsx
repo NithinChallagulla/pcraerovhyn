@@ -1,3 +1,4 @@
+// src/components/StreamCard.tsx
 import { useEffect, useRef } from "react";
 import Hls from "hls.js";
 import type { Stream } from "../config";
@@ -5,6 +6,8 @@ import type { Stream } from "../config";
 interface Props {
   stream: Stream;
 }
+
+const isProd = import.meta.env.PROD;
 
 export default function StreamCard({ stream }: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -14,7 +17,20 @@ export default function StreamCard({ stream }: Props) {
     const video = videoRef.current;
     if (!video) return;
 
-    const url = stream.hlsUrl;
+    // 🔐 Build a browser-safe HLS URL
+    let url = stream.hlsUrl;
+
+    if (isProd) {
+      // In Netlify, convert "http://34.93.170.150/hls/....m3u8"
+      // into just "/hls/....m3u8" so Netlify can proxy it over HTTPS.
+      try {
+        const parsed = new URL(stream.hlsUrl);
+        url = parsed.pathname; // e.g. "/hls/EVT-2XL7-KA45.m3u8"
+      } catch (err) {
+        console.warn("Failed to parse HLS URL, using raw", stream.hlsUrl, err);
+      }
+    }
+
     console.log("Attaching HLS for:", stream.streamKey, url);
 
     if (Hls.isSupported()) {
@@ -22,8 +38,8 @@ export default function StreamCard({ stream }: Props) {
         maxBufferLength: 10,
         liveDurationInfinity: true,
       });
-      hlsRef.current = hls;
 
+      hlsRef.current = hls;
       hls.loadSource(url);
       hls.attachMedia(video);
 
@@ -39,16 +55,22 @@ export default function StreamCard({ stream }: Props) {
           });
       });
 
+      // mark event as intentionally unused
       hls.on(Hls.Events.ERROR, (_event, data) => {
         console.error("HLS error for", stream.streamKey, data);
       });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      // Native HLS (Safari, some browsers)
       video.src = url;
       video.addEventListener("canplay", () => {
         video
           .play()
-          .then(() => console.log("Native HLS playing", stream.streamKey))
-          .catch((err) => console.error("Native HLS autoplay error", err));
+          .then(() =>
+            console.log("Native HLS playing", stream.streamKey)
+          )
+          .catch((err) =>
+            console.error("Native HLS autoplay error", err)
+          );
       });
       video.addEventListener("error", () => {
         console.error("Native HLS video error", video.error);
@@ -95,11 +117,11 @@ export default function StreamCard({ stream }: Props) {
 
   return (
     <div className="stream-card">
-      <div className="stream-header">
-        <span className="live-pill">LIVE</span>
+      <div className="stream-card-header">
+        <span className="status-pill live">LIVE</span>
         <div className="stream-meta">
-          <div className="stream-title">{stream.pilotName || "Unknown Pilot"}</div>
-          <div className="stream-subtitle">{stream.place || "Unknown Location"}</div>
+          <h3>{stream.pilotName || "Unknown Pilot"}</h3>
+          <p>{stream.place || "Unknown Location"}</p>
         </div>
       </div>
 
@@ -111,15 +133,15 @@ export default function StreamCard({ stream }: Props) {
           playsInline
           controls={false}
         />
-        <div className="stream-controls">
+        <div className="stream-video-actions">
           <button onClick={handleFullscreen}>Fullscreen</button>
           <button onClick={handlePiP}>Pop-out</button>
         </div>
       </div>
 
       <div className="stream-footer">
-        <span className="stream-key-label">Key:</span>
-        <span className="stream-key-value">{stream.streamKey}</span>
+        <span className="label">Key:</span>{" "}
+        <span className="mono">{stream.streamKey}</span>
       </div>
     </div>
   );
