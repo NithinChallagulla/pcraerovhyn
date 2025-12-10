@@ -17,18 +17,15 @@ export default function StreamCard({ stream }: Props) {
     const video = videoRef.current;
     if (!video) return;
 
-    // Build a safe HLS URL
-    let url = stream.hlsUrl;
+    // 🔐 Build final HLS URL
+    //  - In dev: use whatever backend sent (full http://34.93...)
+    //  - In Netlify: ALWAYS use /hls/<streamKey>.m3u8 so it goes
+    //    through our Netlify proxy and stays HTTPS for the browser.
+    const url = isProd
+      ? `/hls/${stream.streamKey}.m3u8`
+      : stream.hlsUrl;
 
-    if (isProd) {
-      // In production, always strip the backend origin and use a relative /hls/... url
-      // This will be proxied by Netlify according to netlify.toml
-      if (url.startsWith("http://34.93.170.150")) {
-        url = url.replace("http://34.93.170.150", "");
-      }
-    }
-
-    console.log("Using HLS URL:", url);
+    console.log("Final HLS URL being used:", url);
 
     if (Hls.isSupported()) {
       const hls = new Hls({
