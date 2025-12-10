@@ -22,7 +22,19 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
         const p = video.play();
         if (p && (p as any).catch) (p as any).catch(() => {});
       } catch {
-        // ignore autoplay block
+        // autoplay may be blocked; user can tap play
+      }
+    };
+
+    const handleBufferEos = () => {
+      if (!video || !hls || isLive) return;
+      try {
+        video.currentTime = 0;
+        hls.stopLoad();
+        hls.startLoad();
+        safePlay();
+      } catch {
+        // ignore
       }
     };
 
@@ -58,6 +70,10 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
       hls.on(Hls.Events.FRAG_LOADED, () => {
         if (!video.paused) safePlay();
       });
+
+      if (!isLive) {
+        hls.on(Hls.Events.BUFFER_EOS, handleBufferEos);
+      }
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = hlsUrl;
       video.addEventListener("loadedmetadata", safePlay);
@@ -67,7 +83,12 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
 
     return () => {
       video.removeEventListener("ended", handleEnded);
-      if (hls) hls.destroy();
+      if (hls) {
+        if (!isLive) {
+          hls.off(Hls.Events.BUFFER_EOS, handleBufferEos);
+        }
+        hls.destroy();
+      }
       if (video) {
         video.removeAttribute("src");
         // @ts-ignore
@@ -78,6 +99,7 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
 
   return videoRef;
 }
+
 
 function StreamCard({ stream }: { stream: Stream }) {
   const isLive = stream.status === "LIVE";
