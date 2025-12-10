@@ -4,24 +4,22 @@ import Layout from "./components/Layout";
 
 import Master from "./pages/Master";
 import DroneFeeds from "./pages/DroneFeeds";
-import PeopleAnalytics from "./pages/PeopleAnalytics";
-import VehicleAnalytics from "./pages/VehicleAnalytics";
+import Analytics from "./pages/Analytics"; // combined page
 
 export default function App() {
   return (
     <Layout>
       <Routes>
-        {/* Default -> /master */}
+        {/* Default → /master */}
         <Route path="/" element={<Navigate to="/master" replace />} />
 
         <Route path="/master" element={<Master />} />
         <Route path="/feeds" element={<DroneFeeds />} />
 
-        {/* ✅ Analytics routes */}
-        <Route path="/analytics/people" element={<PeopleAnalytics />} />
-        <Route path="/analytics/vehicles" element={<VehicleAnalytics />} />
+        {/* Single combined analytics page */}
+        <Route path="/analytics" element={<Analytics />} />
 
-        {/* Fallback for unknown routes */}
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/master" replace />} />
       </Routes>
     </Layout>
