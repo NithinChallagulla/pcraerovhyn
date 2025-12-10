@@ -4,7 +4,6 @@ import Hls from "hls.js";
 import { API_BASE, type Stream } from "../config";
 
 const REFRESH_MS = 8000; // poll every 8s
-const RECENT_MS = 5 * 60 * 1000; // 5 minutes
 
 function useHlsPlayer(hlsUrl: string) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -14,6 +13,9 @@ function useHlsPlayer(hlsUrl: string) {
     if (!video) return;
 
     let hls: Hls | null = null;
+
+    // loop last 5 min forever when the playlist ends
+    video.loop = true;
 
     const safePlay = () => {
       try {
@@ -32,11 +34,10 @@ function useHlsPlayer(hlsUrl: string) {
     if (Hls.isSupported()) {
       hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: true,
-        liveSyncDuration: 1,
-        liveMaxLatencyDuration: 2,
-        backBufferLength: 0,
-        maxBufferLength: 5,
+        lowLatencyMode: false,       // smoother playback, less stutter
+        backBufferLength: 90,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
       });
 
       hls.loadSource(hlsUrl);
@@ -64,6 +65,7 @@ function useHlsPlayer(hlsUrl: string) {
 
 function StreamCard({ stream }: { stream: Stream }) {
   const videoRef = useHlsPlayer(stream.hlsUrl);
+  const isLive = stream.status === "LIVE";
 
   const handleFullscreen = () => {
     const video = videoRef.current;
@@ -94,7 +96,7 @@ function StreamCard({ stream }: { stream: Stream }) {
   return (
     <div className="stream-card">
       <div className="stream-header">
-        <span className="live-pill">LIVE</span>
+        <span className="live-pill">{isLive ? "LIVE" : "REPLAY"}</span>
         <div className="stream-meta">
           <div className="stream-title">{stream.pilotName || "Unknown Pilot"}</div>
           <div className="stream-subtitle">
@@ -109,7 +111,7 @@ function StreamCard({ stream }: { stream: Stream }) {
           className="stream-video"
           muted
           playsInline
-          controls={false}
+          controls   // ✅ show native seek bar, etc.
         />
         <div className="stream-controls">
           <button onClick={handleFullscreen}>Fullscreen</button>
@@ -135,44 +137,31 @@ export default function DroneFeeds() {
   useEffect(() => {
     let cancelled = false;
 
-    const fetchRecent = async () => {
+    const fetchAll = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // ⬅️ get all streams, we’ll filter here
         const res = await fetch(`${API_BASE}/streams`);
         if (!res.ok) throw new Error("Failed to fetch streams");
         const json: Stream[] = await res.json();
-
         if (cancelled) return;
-        const now = Date.now();
 
-        const visible = json.filter((s) => {
-          if (s.status === "PENDING") return false;
-
-          if (s.status === "LIVE") return true;
-
-          if (s.status === "ENDED" && typeof s.endedAt === "number") {
-            return now - s.endedAt <= RECENT_MS;
-          }
-
-          return false;
-        });
-
+        // ✅ keep all tiles permanently (except PENDING)
+        const visible = json.filter((s) => s.status !== "PENDING");
         setStreams(visible);
       } catch (err: any) {
         console.error(err);
         if (!cancelled) {
-          setError(err.message || "Failed to fetch live streams");
+          setError(err.message || "Failed to fetch streams");
         }
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
 
-    fetchRecent();
-    const id = window.setInterval(fetchRecent, REFRESH_MS);
+    fetchAll();
+    const id = window.setInterval(fetchAll, REFRESH_MS);
     return () => {
       cancelled = true;
       window.clearInterval(id);
@@ -184,15 +173,14 @@ export default function DroneFeeds() {
       <div className="page-header">
         <h2>Live Drone Feeds</h2>
         <p>
-          All currently active RTMP streams from field pilots. Tiles disappear
-          automatically after they go stale.
+          All active and recorded drone streams. LIVE shows realtime, REPLAY loops the last 5 minutes.
         </p>
       </div>
 
       {loading && <div className="loading">Refreshing streams…</div>}
       {error && <div className="error-box">{error}</div>}
       {!loading && streams.length === 0 && !error && (
-        <div className="empty-state">No live or recent streams.</div>
+        <div className="empty-state">No streams yet.</div>
       )}
 
       {streams.length > 0 && (
