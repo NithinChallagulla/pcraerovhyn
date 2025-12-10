@@ -1,23 +1,30 @@
-// src/App.tsx
-import { Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import Master from "./pages/Master";
 import DroneFeeds from "./pages/DroneFeeds";
-import PeopleAnalytics from "./pages/PeopleAnalytics";
-import VehicleAnalytics from "./pages/VehicleAnalytics";
+import UnifiedAnalytics from "./pages/UnifiedAnalytics";
+// (You can still import PeopleAnalytics / VehicleAnalytics if you want legacy URLs)
 
-function App() {
+export default function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Navigate to="/master" replace />} />
-        <Route path="/master" element={<Master />} />
-        <Route path="/feeds" element={<DroneFeeds />} />
-        <Route path="/analytics/people" element={<PeopleAnalytics />} />
-        <Route path="/analytics/vehicles" element={<VehicleAnalytics />} />
-      </Routes>
-    </Layout>
+    <BrowserRouter>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Navigate to="/master" replace />} />
+          <Route path="/master" element={<Master />} />
+          <Route path="/feeds" element={<DroneFeeds />} />
+
+          {/* New combined analytics */}
+          <Route path="/analytics" element={<UnifiedAnalytics />} />
+
+          {/* Optional: old URLs point to same page */}
+          <Route path="/analytics/people" element={<UnifiedAnalytics />} />
+          <Route path="/analytics/vehicles" element={<UnifiedAnalytics />} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/master" replace />} />
+        </Routes>
+      </Layout>
+    </BrowserRouter>
   );
 }
-
-export default App;
