@@ -39,7 +39,7 @@ export default function StreamCard({ stream }: Props) {
           });
       });
 
-      hls.on(Hls.Events.ERROR, (event, data) => {
+      hls.on(Hls.Events.ERROR, (_event, data) => {
         console.error("HLS error for", stream.streamKey, data);
       });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
