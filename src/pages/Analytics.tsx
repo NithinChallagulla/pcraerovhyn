@@ -190,55 +190,6 @@ function AnalyticsCard({
               </div>
             </div>
           )}
-
-          {/* Meta row */}
-          <div style={{ display: "flex", gap: "1.2rem", flexWrap: "wrap" }}>
-            {people && (
-              <div>
-                <div className="card-subtitle">People frames</div>
-                <div>{people.analyzedFrames}</div>
-              </div>
-            )}
-            {vehicles && (
-              <div>
-                <div className="card-subtitle">Vehicle frames</div>
-                <div>{vehicles.analyzedFrames}</div>
-              </div>
-            )}
-            {(people || vehicles) && (
-              <div>
-                <div className="card-subtitle">Window</div>
-                <div>
-                  {(
-                    (people?.windowSeconds ?? vehicles?.windowSeconds ?? 0)
-                  ).toFixed(1)}{" "}
-                  s
-                </div>
-              </div>
-            )}
-            {vehicles && (
-              <div>
-                <div className="card-subtitle">Vehicle model</div>
-                <div>{vehicles.model}</div>
-              </div>
-            )}
-            {people && (
-              <div>
-                <div className="card-subtitle">People model</div>
-                <div>{people.model}</div>
-              </div>
-            )}
-          </div>
-
-          {(people || vehicles) && (
-            <div className="hint">
-              Updated at{" "}
-              {new Date(
-                1000 *
-                  Math.max(people?.timestamp ?? 0, vehicles?.timestamp ?? 0)
-              ).toLocaleTimeString()}
-            </div>
-          )}
         </div>
       )}
 
