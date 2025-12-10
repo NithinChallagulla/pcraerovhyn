@@ -10,6 +10,7 @@ import {
 
 const REFRESH_MS = 15000;
 const MAX_STREAMS = 6;
+const RECENT_MS = 5 * 60 * 1000; // 5 minutes
 
 type CombinedAnalytics = {
   people?: AnalyticsResponse;
@@ -210,18 +211,32 @@ export default function Analytics() {
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const analyzingRef = useRef(false);
 
-  // Fetch LIVE streams
+  // Fetch recent (LIVE or ENDED within 5 min)
   useEffect(() => {
     let cancelled = false;
 
-    const fetchLive = async () => {
+    const fetchRecent = async () => {
       try {
         setLoadingStreams(true);
         setError(null);
-        const res = await fetch(`${API_BASE}/streams?status=LIVE`);
-        if (!res.ok) throw new Error("Failed to fetch live streams");
+
+        const res = await fetch(`${API_BASE}/streams`);
+        if (!res.ok) throw new Error("Failed to fetch streams");
         const json: Stream[] = await res.json();
-        if (!cancelled) setLiveStreams(json);
+        if (cancelled) return;
+
+        const now = Date.now();
+
+        const visible = json.filter((s) => {
+          if (s.status === "PENDING") return false;
+          if (s.status === "LIVE") return true;
+          if (s.status === "ENDED" && typeof s.endedAt === "number") {
+            return now - s.endedAt <= RECENT_MS;
+          }
+          return false;
+        });
+
+        setLiveStreams(visible);
       } catch (err: any) {
         console.error(err);
         if (!cancelled) {
@@ -232,15 +247,15 @@ export default function Analytics() {
       }
     };
 
-    fetchLive();
-    const id = window.setInterval(fetchLive, REFRESH_MS);
+    fetchRecent();
+    const id = window.setInterval(fetchRecent, REFRESH_MS);
     return () => {
       cancelled = true;
       window.clearInterval(id);
     };
   }, []);
 
-  // Run analytics for both people + vehicles
+  // Run analytics for people + vehicles
   useEffect(() => {
     if (liveStreams.length === 0) return;
     if (analyzingRef.current) return;
@@ -272,18 +287,10 @@ export default function Analytics() {
 
               if (peopleRes.ok) {
                 combined.people = (await peopleRes.json()) as AnalyticsResponse;
-              } else {
-                console.warn("People analytics error", key, await peopleRes.text());
               }
 
               if (vehicleRes.ok) {
                 combined.vehicles = (await vehicleRes.json()) as AnalyticsResponse;
-              } else {
-                console.warn(
-                  "Vehicle analytics error",
-                  key,
-                  await vehicleRes.text()
-                );
               }
 
               return { key, combined };
@@ -322,14 +329,14 @@ export default function Analytics() {
       <div className="page-header">
         <h2>Analytics</h2>
         <p className="card-subtitle">
-          Live people & vehicle counts for each active drone stream.
+          Live people & vehicle counts for each active or recent drone stream.
         </p>
       </div>
 
       <div style={{ marginTop: "1.2rem" }}>
         {loadingStreams && <div className="loading">Refreshing live streams…</div>}
         {!loadingStreams && liveStreams.length === 0 && (
-          <div className="empty-state">No live streams at the moment.</div>
+          <div className="empty-state">No live or recent streams.</div>
         )}
         {error && <div className="error-box">{error}</div>}
       </div>
