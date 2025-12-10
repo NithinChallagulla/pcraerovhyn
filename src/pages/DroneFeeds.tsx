@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { API_BASE, type Stream } from "../config";
 
-const REFRESH_MS = 8000; // poll live streams every 8s
+const REFRESH_MS = 8000; // poll every 8s
+const RECENT_MS = 5 * 60 * 1000; // 5 minutes
 
 function useHlsPlayer(hlsUrl: string) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -134,14 +135,32 @@ export default function DroneFeeds() {
   useEffect(() => {
     let cancelled = false;
 
-    const fetchLive = async () => {
+    const fetchRecent = async () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`${API_BASE}/streams?status=LIVE`);
-        if (!res.ok) throw new Error("Failed to fetch live streams");
+
+        // ⬅️ get all streams, we’ll filter here
+        const res = await fetch(`${API_BASE}/streams`);
+        if (!res.ok) throw new Error("Failed to fetch streams");
         const json: Stream[] = await res.json();
-        if (!cancelled) setStreams(json);
+
+        if (cancelled) return;
+        const now = Date.now();
+
+        const visible = json.filter((s) => {
+          if (s.status === "PENDING") return false;
+
+          if (s.status === "LIVE") return true;
+
+          if (s.status === "ENDED" && typeof s.endedAt === "number") {
+            return now - s.endedAt <= RECENT_MS;
+          }
+
+          return false;
+        });
+
+        setStreams(visible);
       } catch (err: any) {
         console.error(err);
         if (!cancelled) {
@@ -152,8 +171,8 @@ export default function DroneFeeds() {
       }
     };
 
-    fetchLive();
-    const id = window.setInterval(fetchLive, REFRESH_MS);
+    fetchRecent();
+    const id = window.setInterval(fetchRecent, REFRESH_MS);
     return () => {
       cancelled = true;
       window.clearInterval(id);
@@ -166,14 +185,14 @@ export default function DroneFeeds() {
         <h2>Live Drone Feeds</h2>
         <p>
           All currently active RTMP streams from field pilots. Tiles disappear
-          automatically the moment a pilot stops streaming.
+          automatically after they go stale.
         </p>
       </div>
 
       {loading && <div className="loading">Refreshing streams…</div>}
       {error && <div className="error-box">{error}</div>}
       {!loading && streams.length === 0 && !error && (
-        <div className="empty-state">No live streams at the moment.</div>
+        <div className="empty-state">No live or recent streams.</div>
       )}
 
       {streams.length > 0 && (
