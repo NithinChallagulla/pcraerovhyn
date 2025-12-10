@@ -17,21 +17,18 @@ export default function StreamCard({ stream }: Props) {
     const video = videoRef.current;
     if (!video) return;
 
-    // 🔐 Build a browser-safe HLS URL
+    // Build a safe HLS URL
     let url = stream.hlsUrl;
 
     if (isProd) {
-      // In Netlify, convert "http://34.93.170.150/hls/....m3u8"
-      // into just "/hls/....m3u8" so Netlify can proxy it over HTTPS.
-      try {
-        const parsed = new URL(stream.hlsUrl);
-        url = parsed.pathname; // e.g. "/hls/EVT-2XL7-KA45.m3u8"
-      } catch (err) {
-        console.warn("Failed to parse HLS URL, using raw", stream.hlsUrl, err);
+      // In production, always strip the backend origin and use a relative /hls/... url
+      // This will be proxied by Netlify according to netlify.toml
+      if (url.startsWith("http://34.93.170.150")) {
+        url = url.replace("http://34.93.170.150", "");
       }
     }
 
-    console.log("Attaching HLS for:", stream.streamKey, url);
+    console.log("Using HLS URL:", url);
 
     if (Hls.isSupported()) {
       const hls = new Hls({
@@ -44,42 +41,42 @@ export default function StreamCard({ stream }: Props) {
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        console.log("Manifest parsed for", stream.streamKey);
         video
           .play()
-          .then(() => {
-            console.log("Video playing for", stream.streamKey);
-          })
-          .catch((err) => {
-            console.error("Autoplay error for", stream.streamKey, err);
-          });
+          .then(() => console.log("HLS playing", stream.streamKey))
+          .catch((err) =>
+            console.error("HLS autoplay error", stream.streamKey, err)
+          );
       });
 
-      // mark event as intentionally unused
       hls.on(Hls.Events.ERROR, (_event, data) => {
         console.error("HLS error for", stream.streamKey, data);
       });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      // Native HLS (Safari, some browsers)
       video.src = url;
-      video.addEventListener("canplay", () => {
+      const onCanPlay = () => {
         video
           .play()
-          .then(() =>
-            console.log("Native HLS playing", stream.streamKey)
-          )
+          .then(() => console.log("Native HLS playing", stream.streamKey))
           .catch((err) =>
-            console.error("Native HLS autoplay error", err)
+            console.error("Native HLS autoplay error", stream.streamKey, err)
           );
-      });
-      video.addEventListener("error", () => {
+      };
+      video.addEventListener("canplay", onCanPlay);
+
+      const onError = () => {
         console.error("Native HLS video error", video.error);
-      });
+      };
+      video.addEventListener("error", onError);
+
+      return () => {
+        video.removeEventListener("canplay", onCanPlay);
+        video.removeEventListener("error", onError);
+      };
     } else {
       console.error("HLS not supported in this browser");
     }
 
-    // basic error listener
     const onVideoError = () => {
       console.error("Video element error", video.error);
     };
