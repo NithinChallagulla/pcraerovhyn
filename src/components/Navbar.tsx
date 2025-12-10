@@ -13,23 +13,23 @@ export default function Navbar() {
       </div>
 
       <nav className="navbar-links">
-        <NavLink to="/master" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+        <NavLink
+          to="/master"
+          className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+        >
           Master
         </NavLink>
-        <NavLink to="/feeds" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+        <NavLink
+          to="/feeds"
+          className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+        >
           Drone Feeds
         </NavLink>
         <NavLink
-          to="/analytics/people"
+          to="/analytics"
           className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
         >
-          People Analytics
-        </NavLink>
-        <NavLink
-          to="/analytics/vehicles"
-          className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-        >
-          Vehicle Analytics
+          Analytics
         </NavLink>
       </nav>
     </header>
