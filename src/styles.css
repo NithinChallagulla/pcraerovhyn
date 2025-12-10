@@ -443,9 +443,7 @@ body {
   object-fit: cover;
 }
 
-.stream-video::-webkit-media-controls {
-  display: none !important;
-}
+
 
 .stream-controls {
   position: absolute;
