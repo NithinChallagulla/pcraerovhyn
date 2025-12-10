@@ -16,10 +16,12 @@ export default function App() {
 
         <Route path="/master" element={<Master />} />
         <Route path="/feeds" element={<DroneFeeds />} />
+
+        {/* ✅ Analytics routes */}
         <Route path="/analytics/people" element={<PeopleAnalytics />} />
         <Route path="/analytics/vehicles" element={<VehicleAnalytics />} />
 
-        {/* Fallback */}
+        {/* Fallback for unknown routes */}
         <Route path="*" element={<Navigate to="/master" replace />} />
       </Routes>
     </Layout>
