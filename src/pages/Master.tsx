@@ -127,47 +127,82 @@ export default function Master() {
             </button>
           </form>
 
-          {createdStream && (
-            <div className="generated-stream">
-              <h3>Stream Generated</h3>
-              <div className="generated-row">
-                <span className="label">RTMP Server</span>
-                <div className="value-with-btn">
-                  <code>{createdStream.rtmpUrl.split("/live")[0] + "/live"}</code>
-                  <button onClick={() => copyToClipboard(createdStream.rtmpUrl.split("/live")[0] + "/live")}>
-                    Copy
-                  </button>
-                </div>
-              </div>
+          {createdStream && (() => {
+            // base RTMP (rtmp://ip/live)
+            const baseRtmp =
+              createdStream.rtmpUrl.split("/live")[0] + "/live";
+            // fused link: rtmp://ip/live/KEY
+            const fusedRtmp = `${baseRtmp}/${createdStream.streamKey}`;
 
-              <div className="generated-row">
-                <span className="label">Stream Key</span>
-                <div className="value-with-btn">
-                  <code>{createdStream.streamKey}</code>
-                  <button onClick={() => copyToClipboard(createdStream.streamKey)}>Copy</button>
-                </div>
-              </div>
+            return (
+              <div className="generated-stream">
+                <h3>Stream Generated</h3>
 
-              <div className="generated-row">
-                <span className="label">HLS URL</span>
-                <div className="value-with-btn">
-                  <code>{createdStream.hlsUrl}</code>
-                  <button onClick={() => copyToClipboard(createdStream.hlsUrl)}>Copy</button>
+                <div className="generated-row">
+                  <span className="label">RTMP Server</span>
+                  <div className="value-with-btn">
+                    <code>{baseRtmp}</code>
+                    <button onClick={() => copyToClipboard(baseRtmp)}>
+                      Copy
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <p className="hint">
-                <strong>DJI Setup:</strong> Use RTMP Server and Stream Key above in the DJI transmission
-                settings. Once pilot starts, status will flip to <span className="status-pill live">LIVE</span>.
-              </p>
-            </div>
-          )}
+                <div className="generated-row">
+                  <span className="label">Stream Key</span>
+                  <div className="value-with-btn">
+                    <code>{createdStream.streamKey}</code>
+                    <button
+                      onClick={() =>
+                        copyToClipboard(createdStream.streamKey)
+                      }
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+
+                {/* 🔥 New fused link row */}
+                <div className="generated-row">
+                  <span className="label">RTMP Server + Key</span>
+                  <div className="value-with-btn">
+                    <code>{fusedRtmp}</code>
+                    <button onClick={() => copyToClipboard(fusedRtmp)}>
+                      Copy
+                    </button>
+                  </div>
+                </div>
+
+                <div className="generated-row">
+                  <span className="label">HLS URL</span>
+                  <div className="value-with-btn">
+                    <code>{createdStream.hlsUrl}</code>
+                    <button
+                      onClick={() =>
+                        copyToClipboard(createdStream.hlsUrl)
+                      }
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+
+                <p className="hint">
+                  <strong>DJI Setup:</strong> You can either paste server and
+                  key separately, or directly use the{" "}
+                  <strong>RTMP Server + Key</strong> link in devices that
+                  support a single RTMP URL.
+                </p>
+              </div>
+            );
+          })()}
         </div>
 
         <div className="master-card">
           <h2>All Streams</h2>
           <p className="card-subtitle">
-            Live registry of all drone sessions for this event. Use delete to immediately revoke a stream.
+            Live registry of all drone sessions for this event. Use delete to
+            immediately revoke a stream.
           </p>
 
           {error && <div className="error-box">{error}</div>}
@@ -195,18 +230,28 @@ export default function Master() {
                       <td>{s.place}</td>
                       <td className="mono">{s.streamKey}</td>
                       <td>
-                        <span className={`status-pill ${s.status.toLowerCase()}`}>{s.status}</span>
+                        <span
+                          className={`status-pill ${s.status.toLowerCase()}`}
+                        >
+                          {s.status}
+                        </span>
                       </td>
                       <td>
                         {s.createdAt
-                          ? new Date(s.createdAt).toLocaleTimeString("en-IN", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
+                          ? new Date(s.createdAt).toLocaleTimeString(
+                              "en-IN",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )
                           : "-"}
                       </td>
                       <td>
-                        <button className="danger-btn" onClick={() => handleDelete(s.id)}>
+                        <button
+                          className="danger-btn"
+                          onClick={() => handleDelete(s.id)}
+                        >
                           Delete
                         </button>
                       </td>
