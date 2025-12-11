@@ -59,7 +59,14 @@ body {
   position: sticky;
   top: 0;
   z-index: 20;
+
+  /* 🔥 Prevent navbar from becoming 2 rows */
+  white-space: nowrap;
+
+  /* 🔥 Allow shrinking instead of pushing layout and creating blank space */
+  min-width: 0;
 }
+
 
 .navbar-left {
   display: flex;
@@ -78,6 +85,12 @@ body {
   display: flex;
   align-items: center;
   gap: 0.8rem;
+}
+.navbar-left,
+.navbar-right,
+.navbar-links {
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 /* Bigger logos */
