@@ -9,7 +9,7 @@ import {
 } from "../config";
 
 const REFRESH_MS = 15000;
-const MAX_STREAMS = 10;
+const MAX_STREAMS = 12;
 
 type CombinedAnalytics = {
   people?: AnalyticsResponse;
