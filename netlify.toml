@@ -1,3 +1,9 @@
+# Proxy for Incident Bridge (webhook service)
+[[redirects]]
+  from = "/api/bridge/*"
+  to = "http://34.93.170.150:9000/:splat"
+  status = 200
+  force = true
 # Proxy for RTMP backend (streams service)
 [[redirects]]
   from = "/api/*"
