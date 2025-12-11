@@ -1,4 +1,4 @@
-/* src/styles.css (updated) */
+/* src/styles.css - edited: wider content, fixed 3-column feeds, non-floating navbar */
 
 *,
 *::before,
@@ -7,7 +7,6 @@
 }
 
 :root {
-  --navbar-height: 72px; /* adjust if your navbar is taller/shorter */
   --bg: #060308;
   --bg-alt: #120710;
   --card: rgba(20, 10, 18, 0.96);
@@ -32,69 +31,74 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: radial-gradient(circle at top, #2a0715 0, #05010a 40%, #020005 100%);
   color: var(--text-main);
-
-  /* reserve exact space for the fixed navbar so content isn't swallowed */
-  padding-top: var(--navbar-height);
+  /* no top padding: navbar is NOT fixed/sticky anymore */
 }
 
-/* Small wrapper to center the app content */
 .app-root {
-  min-height: calc(100vh - var(--navbar-height));
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
 .app-main {
   flex: 1;
-  padding: 1.25rem 2rem 2rem;
+  /* smaller vertical padding, more horizontal room */
+  padding: 1rem 1.25rem 2rem;
   width: 100%;
 }
 
-/* NAVBAR — fixed and visually separated */
+/* Navbar — normal document flow (not sticky/fixed) */
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem clamp(1rem, 2.5vw, 2.5rem);
-  background: linear-gradient(90deg, rgba(43,5,15,0.95), rgba(54,16,1,0.95));
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(to right, #2b050f, #361001, #2b050f);
   border-bottom: 1px solid rgba(255, 207, 120, 0.18);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
 
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--navbar-height);
-  z-index: 9999;
-
-  /* subtle glass effect so content scrolls under but the navbar still 'floats' */
-  backdrop-filter: blur(4px) saturate(1.05);
-  -webkit-backdrop-filter: blur(4px) saturate(1.05);
+  /* remove sticky/fixed behavior so it scrolls with page */
+  position: relative;
+  top: auto;
+  z-index: 20;
 
   white-space: nowrap;
   min-width: 0;
 }
 
-/* ensure vertical centering when navbar height changes */
-.navbar-left,
-.navbar-right,
-.navbar-logos {
+/* Navbar children */
+.navbar-left {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.navbar-logos {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.navbar-left,
+.navbar-right,
+.navbar-links {
+  flex-shrink: 1;
   min-width: 0;
 }
 
 /* Logos */
 .nav-logo {
-  height: 44px;
+  height: 48px;
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 0 6px rgba(255, 207, 120, 0.45));
 }
 .logo-circle {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 999px;
   border: 2px solid var(--accent-gold);
   display: flex;
@@ -102,34 +106,31 @@ body {
   justify-content: center;
   color: var(--accent-gold);
   font-weight: 700;
-  box-shadow: 0 0 12px rgba(255,207,120,0.35);
+  box-shadow: 0 0 14px rgba(255, 207, 120, 0.4);
 }
 
 .navbar-title h1 {
-  font-size: 0.98rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
+
 .navbar-title p {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .navbar-links {
   display: flex;
   gap: 1rem;
-  min-width: 0;
-  overflow: auto;
+  overflow: auto; /* keep links from forcing layout changes */
 }
 
 .nav-link {
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  padding: 0.36rem 0.85rem;
+  padding: 0.4rem 0.9rem;
   border-radius: 999px;
   color: var(--text-muted);
   text-decoration: none;
@@ -140,8 +141,8 @@ body {
 
 .nav-link:hover {
   color: var(--accent-white);
-  border-color: rgba(255, 212, 121, 0.32);
-  background: rgba(255, 180, 90, 0.06);
+  border-color: rgba(255, 212, 121, 0.4);
+  background: rgba(255, 180, 90, 0.09);
 }
 
 .nav-link.active {
@@ -150,39 +151,50 @@ body {
   border-color: transparent;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 768px) {
   .navbar {
-    padding: 0.5rem 1rem;
-    height: calc(var(--navbar-height) + 4px);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding-inline: 1rem;
   }
 
-  .nav-logo { height: 40px; }
+  .navbar-links {
+    width: 100%;
+    flex-wrap: wrap;
+  }
 }
 
-/* PAGE & CONTAINER — restored aesthetic and spacing */
+/* Common page styles */
+
+/* Increase page width to use more horizontal space, but cap it for readability */
 .page {
-  width: min(1400px, calc(100% - 2rem)); /* slightly narrower than before to preserve Master look */
+  width: min(1700px, calc(100% - 3rem));
   margin: 0 auto;
   padding-inline: 0.5rem;
-  /* add a little top spacing so the page header doesn't butt against navbar */
-  padding-top: 0.75rem;
 }
 
 .page-header h2 {
   font-size: 1.3rem;
-  margin: 0 0 0.25rem 0;
+  margin-bottom: 0.25rem;
 }
 
 .page-header p {
-  margin: 0 0 0.75rem 0;
+  margin: 0;
   color: var(--text-muted);
   font-size: 0.9rem;
 }
 
-/* MASTER page layout - preserve visual weight and rounded corners */
+.card-subtitle {
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Master page layout: restore card visual weight */
 .master-grid {
   display: grid;
-  grid-template-columns: 1.05fr 1.35fr;
+  grid-template-columns: 1.15fr 1.25fr;
   gap: 1.5rem;
   align-items: start;
 }
@@ -194,16 +206,14 @@ body {
 }
 
 .master-card {
-  background: linear-gradient(180deg, rgba(20,10,18,0.98), rgba(14,6,12,0.88));
+  background: var(--card);
   border-radius: 18px;
   padding: 1.25rem 1.5rem;
-  border: 1px solid rgba(255,210,145,0.06);
-  box-shadow:
-    0 10px 20px rgba(0,0,0,0.55),
-    inset 0 1px 0 rgba(255,210,145,0.02);
+  border: 1px solid var(--border-soft);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.55);
 }
 
-/* form styling unchanged but slightly tighter to match master card */
+/* Forms */
 .master-form {
   margin-top: 1rem;
   display: flex;
@@ -223,15 +233,15 @@ body {
   width: 100%;
   padding: 0.55rem 0.7rem;
   border-radius: 10px;
-  border: 1px solid rgba(255, 210, 145, 0.14);
-  background: rgba(9, 4, 13, 0.85);
+  border: 1px solid rgba(255, 210, 145, 0.3);
+  background: rgba(9, 4, 13, 0.9);
   color: var(--accent-white);
   outline: none;
 }
 
 .master-form input:focus {
   border-color: var(--accent-gold);
-  box-shadow: 0 0 0 1px rgba(255, 211, 105, 0.15);
+  box-shadow: 0 0 0 1px rgba(255, 211, 105, 0.45);
 }
 
 .master-form button {
@@ -247,55 +257,214 @@ body {
   cursor: pointer;
   background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
   color: var(--accent-white);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.7);
 }
 
-/* Tables */
+.master-form button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Streams table */
 .streams-table-wrapper {
   margin-top: 0.8rem;
   max-height: 420px;
   overflow: auto;
 }
 
-/* Status pills and other styles kept as before for consistency */
-.status-pill { /* ... keep your existing styles ... */ }
+/* Status pills */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.status-pill.pending {
+  background: rgba(255, 207, 120, 0.08);
+  color: var(--accent-gold);
+}
+
+.status-pill.live {
+  background: rgba(255, 75, 75, 0.12);
+  color: var(--accent-red);
+}
+
+.status-pill.ended {
+  background: rgba(150, 150, 150, 0.1);
+  color: #aaa;
+}
+
+/* Buttons */
+.danger-btn {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  border: none;
+  background: rgba(255, 75, 94, 0.1);
+  color: var(--danger);
+  cursor: pointer;
+}
 
 /* ---------------------------------------- */
-/* DRONE FEEDS — always 3 per row on wide screens */
+/* FEEDS — MAX 3 PER ROW, with roomy columns */
 /* ---------------------------------------- */
 
 .feeds-grid {
   margin-top: 1.2rem;
   display: grid;
-  grid-template-columns: repeat(3, minmax(320px, 1fr));
+
+  /* Always 3 columns on wide screens, each column keeps a sensible minimum */
+  grid-template-columns: repeat(3, minmax(360px, 1fr));
   gap: 1.25rem;
   width: 100%;
 }
 
-@media (max-width: 1100px) {
+/* On medium screens switch to 2 columns */
+@media (max-width: 1200px) {
   .feeds-grid {
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    grid-template-columns: repeat(2, minmax(300px, 1fr));
   }
 }
 
+/* On small screens a single column */
 @media (max-width: 720px) {
   .feeds-grid {
-    grid-template-columns: repeat(1, minmax(260px, 1fr));
+    grid-template-columns: 1fr;
   }
 }
 
-/* stream card visual treatment restored */
 .stream-card {
   background: var(--card);
   border-radius: 18px;
   padding: 0.75rem 0.75rem 0.9rem;
   border: 1px solid var(--border-soft);
-  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   min-width: 0;
 }
 
-/* minor responsive helpers so things don't overflow horizontally */
+.stream-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.live-pill {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: radial-gradient(circle at center, #ff4b4b, #7f0410);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.stream-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.stream-title {
+  font-size: 0.9rem;
+}
+
+.stream-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.stream-video-wrapper {
+  position: relative;
+  margin-top: 0.35rem;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.stream-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.stream-controls {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.stream-controls button {
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.65rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--accent-white);
+  cursor: pointer;
+}
+
+.stream-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+}
+
+.stream-key-label {
+  color: var(--text-muted);
+}
+
+.stream-key-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+/* Generic */
+.error-box {
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 140, 140, 0.5);
+  background: rgba(80, 10, 10, 0.8);
+  font-size: 0.8rem;
+}
+
+.loading,
+.empty-state {
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.reset-btn {
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(255, 75, 94, 0.15);
+  color: #ff6b81;
+  cursor: pointer;
+}
+
+.reset-btn:hover {
+  background: rgba(255, 75, 94, 0.28);
+}
+
+/* small rendering improvements */
 * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
