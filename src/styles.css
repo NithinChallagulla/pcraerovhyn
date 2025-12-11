@@ -1,4 +1,4 @@
-/* src/styles.css - edited: wider content, fixed 3-column feeds, non-floating navbar */
+/* src/styles.css - updated: wider content, fixed 3-column feeds, non-floating navbar + restored table styles */
 
 *,
 *::before,
@@ -31,7 +31,7 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: radial-gradient(circle at top, #2a0715 0, #05010a 40%, #020005 100%);
   color: var(--text-main);
-  /* no top padding: navbar is NOT fixed/sticky anymore */
+  /* navbar is NOT fixed/sticky */
 }
 
 .app-root {
@@ -57,7 +57,6 @@ body {
   border-bottom: 1px solid rgba(255, 207, 120, 0.18);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
 
-  /* remove sticky/fixed behavior so it scrolls with page */
   position: relative;
   top: auto;
   z-index: 20;
@@ -265,11 +264,113 @@ body {
   cursor: default;
 }
 
-/* Streams table */
+/* Streams table wrapper (keeps table inside the master card) */
 .streams-table-wrapper {
   margin-top: 0.8rem;
   max-height: 420px;
   overflow: auto;
+  padding: 0.6rem;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));
+  box-shadow: inset 0 1px 0 rgba(255,210,145,0.02);
+}
+
+/* Table base */
+.streams-table {
+  width: 100%;
+  border-collapse: separate; /* use separate so we can have rounded rows if wanted */
+  border-spacing: 0 8px; /* space between rows for that 'card-list' feel */
+  font-size: 0.86rem;
+  color: var(--text-main);
+}
+
+/* Header row */
+.streams-table thead th {
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  padding: 0.55rem 0.65rem;
+  font-weight: 700;
+}
+
+/* Body rows — each row looks like a subtle card */
+.streams-table tbody tr {
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));
+  border-radius: 10px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.45);
+}
+
+/* If the browser doesn't support spacing the cells will still look fine */
+.streams-table tbody td {
+  padding: 0.56rem 0.7rem;
+  vertical-align: middle;
+  border: none;
+  color: var(--text-main);
+}
+
+/* Lighter muted text for secondary columns */
+.streams-table tbody td + td,
+.streams-table tbody td:nth-child(2) {
+  color: var(--text-muted);
+}
+
+/* monospace key style */
+.streams-table .mono {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  color: var(--accent-gold);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* Status pill inside table */
+.streams-table .status-pill {
+  padding: 0.18rem 0.45rem;
+  min-width: 56px;
+  font-size: 0.68rem;
+}
+
+/* Delete button (pill) aligned to right */
+.streams-table .row-actions {
+  text-align: right;
+  padding-right: 0.9rem;
+  width: 1%;
+  white-space: nowrap;
+}
+
+.streams-table .delete-btn {
+  display: inline-block;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 90, 110, 0.16);
+  background: linear-gradient(180deg, rgba(255,80,100,0.08), rgba(0,0,0,0.06));
+  color: #ffb8c0;
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.streams-table .delete-btn:hover {
+  background: linear-gradient(180deg, rgba(255,80,100,0.14), rgba(0,0,0,0.08));
+  color: #ffdbe0;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255,40,60,0.06);
+}
+
+/* Row hover for clarity */
+.streams-table tbody tr:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+}
+
+/* Responsive tweaks: reduce spacing on small screens */
+@media (max-width: 980px) {
+  .streams-table thead th { font-size: 0.7rem; padding: 0.45rem 0.5rem; }
+  .streams-table tbody td { padding: 0.45rem 0.5rem; font-size: 0.82rem; }
+  .streams-table .mono { font-size: 0.82rem; }
 }
 
 /* Status pills */
