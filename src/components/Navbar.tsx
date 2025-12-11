@@ -27,6 +27,11 @@ export default function Navbar() {
           <NavLink to="/analytics" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
             Analytics
           </NavLink>
+          <NavLink
+  to="/incident-bridge"
+  className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+>
+  Incident Bridge
         </nav>
 
         <div className="navbar-logos">
