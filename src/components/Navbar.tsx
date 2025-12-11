@@ -1,5 +1,3 @@
-// src/components/Navbar.tsx
-
 import { NavLink } from "react-router-dom";
 import policeLogo from "./policelogo.png";
 import aerovhynLogo from "./aerovhyn.png";
@@ -17,24 +15,26 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* CENTER LOGOS */}
-      <div className="navbar-center-logos">
-        <img src={policeLogo} alt="Police Logo" className="center-logo" />
-        <img src={aerovhynLogo} alt="Aerovhyn Logo" className="center-logo" />
+      {/* RIGHT NAVIGATION + LOGOS */}
+      <div className="navbar-right">
+        <nav className="navbar-links">
+          <NavLink to="/master" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            Master
+          </NavLink>
+          <NavLink to="/feeds" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            Drone Feeds
+          </NavLink>
+          <NavLink to="/analytics" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+            Analytics
+          </NavLink>
+        </nav>
+
+        <div className="navbar-logos">
+          <img src={policeLogo} alt="Police Logo" className="nav-logo" />
+          <img src={aerovhynLogo} alt="Aerovhyn Logo" className="nav-logo" />
+        </div>
       </div>
 
-      {/* RIGHT NAVIGATION */}
-      <nav className="navbar-links">
-        <NavLink to="/master" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-          Master
-        </NavLink>
-        <NavLink to="/feeds" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-          Drone Feeds
-        </NavLink>
-        <NavLink to="/analytics" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-          Analytics
-        </NavLink>
-      </nav>
     </header>
   );
 }
