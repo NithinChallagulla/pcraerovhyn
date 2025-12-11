@@ -1,9 +1,13 @@
 // src/components/Navbar.tsx
 import { NavLink } from "react-router-dom";
+import policeLogo from "../assets/policelogo.png";
+import aerovhynLogo from "../assets/aerovhyn.png";
 
 export default function Navbar() {
   return (
     <header className="navbar">
+      
+      {/* LEFT SIDE */}
       <div className="navbar-left">
         <div className="logo-circle">ॐ</div>
         <div className="navbar-title">
@@ -12,23 +16,21 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* CENTER LOGOS */}
+      <div className="navbar-center-logos">
+        <img src={policeLogo} alt="Police Logo" className="center-logo" />
+        <img src={aerovhynLogo} alt="Aerovhyn Logo" className="center-logo" />
+      </div>
+
+      {/* RIGHT NAVIGATION */}
       <nav className="navbar-links">
-        <NavLink
-          to="/master"
-          className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-        >
+        <NavLink to="/master" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
           Master
         </NavLink>
-        <NavLink
-          to="/feeds"
-          className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-        >
+        <NavLink to="/feeds" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
           Drone Feeds
         </NavLink>
-        <NavLink
-          to="/analytics"
-          className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-        >
+        <NavLink to="/analytics" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
           Analytics
         </NavLink>
       </nav>
