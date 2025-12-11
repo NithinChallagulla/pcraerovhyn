@@ -1,8 +1,5 @@
-/* src/styles.css
-   Original styling preserved where possible — compacted/dense tile sizes
-*/
+/* src/styles.css */
 
-/* Reset */
 *,
 *::before,
 *::after {
@@ -24,6 +21,7 @@
 }
 
 /* App layout */
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -39,22 +37,22 @@ body {
 
 .app-main {
   flex: 1;
-  /* reduced padding for denser layout */
-  padding: 1rem 1.2rem 1.2rem;
+  padding: 1.5rem 2.5rem 2.5rem;
 }
 
 @media (max-width: 768px) {
   .app-main {
-    padding: 0.8rem;
+    padding: 1rem;
   }
 }
 
 /* Navbar */
+
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 1.2rem;
+  padding: 0.75rem 2.5rem;
   background: linear-gradient(to right, #2b050f, #361001, #2b050f);
   border-bottom: 1px solid rgba(255, 207, 120, 0.25);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
@@ -66,12 +64,12 @@ body {
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
 .logo-circle {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 999px;
   border: 2px solid var(--accent-gold);
   display: flex;
@@ -83,37 +81,37 @@ body {
 }
 
 .navbar-title h1 {
-  font-size: 0.98rem;
+  font-size: 1rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .navbar-title p {
-  font-size: 0.70rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
 .navbar-links {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .nav-link {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 0.32rem 0.7rem;
+  letter-spacing: 0.09em;
+  padding: 0.4rem 0.9rem;
   border-radius: 999px;
   color: var(--text-muted);
   text-decoration: none;
   border: 1px solid transparent;
-  transition: all 0.15s ease-out;
+  transition: all 0.18s ease-out;
 }
 
 .nav-link:hover {
   color: var(--accent-white);
-  border-color: rgba(255, 212, 121, 0.35);
-  background: rgba(255, 180, 90, 0.07);
+  border-color: rgba(255, 212, 121, 0.4);
+  background: rgba(255, 180, 90, 0.09);
 }
 
 .nav-link.active {
@@ -126,8 +124,8 @@ body {
   .navbar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.6rem;
-    padding-inline: 0.8rem;
+    gap: 0.75rem;
+    padding-inline: 1rem;
   }
 
   .navbar-links {
@@ -137,34 +135,35 @@ body {
 }
 
 /* Common page styles */
+
 .page-header h2 {
-  font-size: 1.12rem;
-  margin-bottom: 0.15rem;
+  font-size: 1.3rem;
+  margin-bottom: 0.25rem;
 }
 
 .page-header p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
 .page {
-  /* slightly narrower so 3 columns fit nicely */
-  max-width: 1160px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .card-subtitle {
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
 /* Master page */
+
 .master-grid {
   display: grid;
   grid-template-columns: 1.1fr 1.3fr;
-  gap: 1.2rem;
+  gap: 1.5rem;
 }
 
 @media (max-width: 980px) {
@@ -175,56 +174,56 @@ body {
 
 .master-card {
   background: var(--card);
-  border-radius: 14px;
-  padding: 1rem 1rem;
+  border-radius: 18px;
+  padding: 1.25rem 1.5rem;
   border: 1px solid var(--border-soft);
-  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
 }
 
 .master-form {
-  margin-top: 0.9rem;
+  margin-top: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
 .master-form label {
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--text-muted);
 }
 
 .master-form input {
-  margin-top: 0.28rem;
+  margin-top: 0.3rem;
   width: 100%;
-  padding: 0.48rem 0.6rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 210, 145, 0.28);
-  background: rgba(9, 4, 13, 0.92);
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 210, 145, 0.3);
+  background: rgba(9, 4, 13, 0.9);
   color: var(--accent-white);
   outline: none;
 }
 
 .master-form input:focus {
   border-color: var(--accent-gold);
-  box-shadow: 0 0 0 1px rgba(255, 211, 105, 0.35);
+  box-shadow: 0 0 0 1px rgba(255, 211, 105, 0.45);
 }
 
 .master-form button {
-  margin-top: 0.4rem;
+  margin-top: 0.5rem;
   align-self: flex-start;
-  padding: 0.48rem 1.1rem;
+  padding: 0.55rem 1.4rem;
   border-radius: 999px;
   border: none;
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   cursor: pointer;
   background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
   color: var(--accent-white);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.65);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.7);
 }
 
 .master-form button:disabled {
@@ -232,38 +231,149 @@ body {
   cursor: default;
 }
 
+.generated-stream {
+  margin-top: 1.2rem;
+  padding-top: 0.8rem;
+  border-top: 1px dashed rgba(255, 210, 145, 0.4);
+}
+
+.generated-stream h3 {
+  margin-bottom: 0.6rem;
+}
+
+.generated-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.35rem;
+  gap: 0.5rem;
+}
+
+.generated-row .label {
+  width: 110px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.value-with-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.value-with-btn code {
+  background: rgba(9, 4, 13, 0.9);
+  padding: 0.35rem 0.5rem;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  color: var(--accent-gold);
+  border: 1px solid rgba(255, 210, 145, 0.4);
+  overflow-x: auto;
+}
+
+.value-with-btn button {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.75rem;
+  cursor: pointer;
+  background: rgba(255, 207, 120, 0.16);
+  color: var(--accent-gold);
+}
+
+.hint {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 /* Tables */
+
 .streams-table-wrapper {
   margin-top: 0.8rem;
   max-height: 420px;
   overflow: auto;
 }
 
+.streams-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.streams-table th,
+.streams-table td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid rgba(255, 210, 145, 0.16);
+}
+
+.streams-table th {
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.streams-table .mono {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
 /* Status pills */
+
 .status-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 48px;
-  padding: 0.12rem 0.45rem;
+  min-width: 56px;
+  padding: 0.15rem 0.5rem;
   border-radius: 999px;
-  font-size: 0.66rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
 
+.status-pill.pending {
+  background: rgba(255, 207, 120, 0.08);
+  color: var(--accent-gold);
+}
+
+.status-pill.live {
+  background: rgba(255, 75, 75, 0.12);
+  color: var(--accent-red);
+}
+
+.status-pill.ended {
+  background: rgba(150, 150, 150, 0.1);
+  color: #aaa;
+}
+
+/* Buttons */
+
+.danger-btn {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  border: none;
+  background: rgba(255, 75, 94, 0.1);
+  color: var(--danger);
+  cursor: pointer;
+}
+
 /* ---------------------------------------- */
-/* DRONE FEEDS — compact tiles (3 per row)  */
+/* DRONE FEEDS — MAX 3 PER ROW */
 /* ---------------------------------------- */
 
 .feeds-grid {
-  margin-top: 1rem;
+  margin-top: 1.2rem;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.8rem; /* smaller gap */
+  gap: 1.25rem;
 }
 
-/* responsive */
 @media (max-width: 1100px) {
   .feeds-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -276,34 +386,30 @@ body {
   }
 }
 
-/* Card (reduced padding, smaller radius) */
 .stream-card {
   background: var(--card);
-  border-radius: 12px;
-  padding: 0.5rem 0.6rem;
+  border-radius: 18px;
+  padding: 0.75rem 0.75rem 0.9rem;
   border: 1px solid var(--border-soft);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  min-height: 150px;
-  overflow: hidden;
+  gap: 0.5rem;
 }
 
-/* header */
 .stream-header {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
 }
 
 .live-pill {
-  padding: 0.16rem 0.45rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 999px;
   background: radial-gradient(circle at center, #ff4b4b, #7f0410);
-  font-size: 0.64rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
 }
 
 .stream-meta {
@@ -312,118 +418,101 @@ body {
 }
 
 .stream-title {
-  font-size: 0.82rem;
-  font-weight: 700;
-  line-height: 1;
+  font-size: 0.9rem;
 }
 
 .stream-subtitle {
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  margin-top: 0.05rem;
 }
 
-/* VIDEO - smaller fixed height to keep tiles compact */
 .stream-video-wrapper {
   position: relative;
-  margin-top: 0.28rem;
-  border-radius: 10px;
+  margin-top: 0.35rem;
+  border-radius: 14px;
   overflow: hidden;
   background: #000;
   width: 100%;
-  /* Fixed small height (compact) - change this if you want slightly larger previews */
-  height: 108px;
+  height: 150px; /* Desired height */
+  padding-bottom: 56.25%; /* This keeps the 16:9 aspect ratio */
 }
+
 
 .stream-video {
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
-  background: #000;
 }
 
-/* stream controls still positioned but smaller */
+
+
 .stream-controls {
   position: absolute;
-  right: 0.36rem;
-  bottom: 0.36rem;
+  right: 0.4rem;
+  bottom: 0.4rem;
   display: flex;
-  gap: 0.2rem;
+  gap: 0.25rem;
 }
 
 .stream-controls button {
-  padding: 0.2rem 0.44rem;
+  padding: 0.25rem 0.55rem;
   border-radius: 999px;
   border: none;
-  font-size: 0.62rem;
-  background: rgba(0, 0, 0, 0.55);
+  font-size: 0.65rem;
+  background: rgba(0, 0, 0, 0.6);
   color: var(--accent-white);
   cursor: pointer;
 }
 
-/* Footer / key */
 .stream-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 0.18rem;
-  font-size: 0.72rem;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
 }
 
 .stream-key-label {
   color: var(--text-muted);
-  font-size: 0.68rem;
 }
 
 .stream-key-value {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
-  font-size: 0.68rem;
-  color: var(--accent-gold);
 }
 
-/* analytics & messages */
-.loading,
-.empty-state,
-.hint {
-  margin-top: 0.35rem;
-  font-size: 0.74rem;
-  color: var(--text-muted);
-}
-
-/* Generic small helpers */
-.card-subtitle {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-top: 0.08rem;
-}
+/* Generic */
 
 .error-box {
-  margin-top: 0.6rem;
-  padding: 0.55rem 0.6rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 140, 140, 0.45);
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 140, 140, 0.5);
   background: rgba(80, 10, 10, 0.8);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
 }
 
-/* responsive tweaks to keep layout readable at small widths */
-@media (max-width: 1280px) {
-  .stream-video-wrapper {
-    height: 100px;
-  }
-  .stream-card {
-    min-height: 140px;
-  }
+.loading,
+.empty-state {
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.reset-btn {
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(255, 75, 94, 0.15);
+  color: #ff6b81;
+  cursor: pointer;
 }
 
-@media (max-width: 720px) {
-  /* mobile: make previews taller for usability */
-  .stream-video-wrapper {
-    height: 160px;
-  }
-  .stream-card {
-    min-height: 220px;
-  }
+.reset-btn:hover {
+  background: rgba(255, 75, 94, 0.28);
 }
+
