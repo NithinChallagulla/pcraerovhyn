@@ -433,10 +433,8 @@ body {
   overflow: hidden;
   background: #000;
   width: 100%;
-  height: 150px; /* Desired height */
-  padding-bottom: 56.25%; /* This keeps the 16:9 aspect ratio */
+  aspect-ratio: 16 / 9;
 }
-
 
 .stream-video {
   width: 100%;
@@ -515,4 +513,3 @@ body {
 .reset-btn:hover {
   background: rgba(255, 75, 94, 0.28);
 }
-
