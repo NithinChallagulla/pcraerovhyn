@@ -76,9 +76,10 @@ export default function IncidentBridge() {
 
     setWorking(true);
     try {
-      // change this to your bridge host if different
-      const BRIDGE = (window as any).__BRIDGE_BASE__ || "http://34.93.170.150:9000";
-      const res = await fetch(`${BRIDGE}/webhook`, {
+      // Use Netlify proxy (or relative path). If you set __BRIDGE_BASE__ in window, it will be used.
+      // Default is empty so fetch goes to /api/bridge/webhook which Netlify will proxy to your bridge.
+      const BRIDGE = (window as any).__BRIDGE_BASE__ || "";
+      const res = await fetch(`${BRIDGE}/api/bridge/webhook`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
