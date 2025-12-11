@@ -134,12 +134,13 @@ function AnalyticsCard({
       <div className="stream-header">
         <span className="live-pill">{isLive ? "LIVE" : "OFFLINE"}</span>
         <div className="stream-meta">
-          <div className="stream-title">
-            {stream.pilotName || "Unknown Pilot"}
-          </div>
-          <div className="stream-subtitle">
+           <div className="stream-title">
             {stream.place || "Unknown Location"} — Analytics
           </div>
+          <div className="stream-subtitle">
+            {stream.pilotName || "Unknown Pilot"}
+          </div>
+         
         </div>
       </div>
 
