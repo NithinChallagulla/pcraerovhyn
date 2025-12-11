@@ -1,6 +1,7 @@
 // src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
+import IncidentBridge from "./pages/IncidentBridge";
 
 import Master from "./pages/Master";
 import DroneFeeds from "./pages/DroneFeeds";
@@ -12,6 +13,7 @@ export default function App() {
       <Routes>
         {/* Default → /master */}
         <Route path="/" element={<Navigate to="/master" replace />} />
+<Route path="/incident-bridge" element={<IncidentBridge />} />
 
         <Route path="/master" element={<Master />} />
         <Route path="/feeds" element={<DroneFeeds />} />
