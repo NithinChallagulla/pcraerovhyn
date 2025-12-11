@@ -1,13 +1,13 @@
 // src/components/Navbar.tsx
-import { NavLink } from "react-router-dom";
-import policeLogo from "../policelogo.png";
-import aerovhynLogo from "../aerovhyn.png";
 
+import { NavLink } from "react-router-dom";
+import policeLogo from "./policelogo.png";
+import aerovhynLogo from "./aerovhyn.png";
 
 export default function Navbar() {
   return (
     <header className="navbar">
-      
+
       {/* LEFT SIDE */}
       <div className="navbar-left">
         <div className="logo-circle">ॐ</div>
