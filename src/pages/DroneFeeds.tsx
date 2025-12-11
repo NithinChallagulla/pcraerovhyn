@@ -137,9 +137,9 @@ function StreamCard({ stream }: { stream: Stream }) {
         <span className="live-pill">{isLive ? "LIVE" : "OFFLINE"}</span>
         <div className="stream-meta">
           <div className="stream-title">
-             <div className="stream-subtitle">
             {stream.place || "Unknown Location"}
           </div>
+                       <div className="stream-subtitle">
             {stream.pilotName || "Unknown Pilot"}
           </div>
          
