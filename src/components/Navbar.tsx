@@ -1,7 +1,8 @@
 // src/components/Navbar.tsx
 import { NavLink } from "react-router-dom";
-import policeLogo from "../assets/policelogo.png";
-import aerovhynLogo from "../assets/aerovhyn.png";
+import policeLogo from "../policelogo.png";
+import aerovhynLogo from "../aerovhyn.png";
+
 
 export default function Navbar() {
   return (
