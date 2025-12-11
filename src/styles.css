@@ -66,19 +66,26 @@ body {
   align-items: center;
   gap: 0.75rem;
 }
-/* Center Logos */
-.navbar-center-logos {
+/* Right side container */
+.navbar-right {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 1.5rem;
+}
+
+/* Logos beside nav links */
+.navbar-logos {
+  display: flex;
+  align-items: center;
   gap: 0.8rem;
 }
 
-.center-logo {
-  height: 42px;
+/* Bigger logos */
+.nav-logo {
+  height: 48px;   /* increase this for bigger */
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 0 6px rgba(255, 207, 120, 0.3));
+  filter: drop-shadow(0 0 6px rgba(255, 207, 120, 0.45));
 }
 .logo-circle {
   width: 40px;
