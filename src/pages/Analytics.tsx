@@ -1,5 +1,4 @@
-// src/pages/Analytics.tsx
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import Hls from "hls.js";
 import {
   API_BASE,
@@ -9,7 +8,7 @@ import {
 } from "../config";
 
 const REFRESH_MS = 15000;
-const MAX_STREAMS = 12;
+const MAX_STREAMS = 9;
 
 type CombinedAnalytics = {
   people?: AnalyticsResponse;
@@ -113,7 +112,6 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
 
   return videoRef;
 }
-
 
 function AnalyticsCard({
   stream,
@@ -272,6 +270,9 @@ export default function Analytics() {
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const analyzingRef = useRef(false);
 
+  // new: selected place filter
+  const [selectedPlace, setSelectedPlace] = useState<string>("ALL");
+
   // Fetch ALL streams (LIVE + ENDED)
   useEffect(() => {
     let cancelled = false;
@@ -305,16 +306,34 @@ export default function Analytics() {
     };
   }, []);
 
+  // derive unique places for dropdown
+  const places = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of streams) {
+      if (s.place && s.place.trim()) set.add(s.place.trim());
+    }
+    return ["ALL", ...Array.from(set).sort()];
+  }, [streams]);
+
+  // compute visible streams based on selectedPlace
+  const visibleStreams = useMemo(() => {
+    const filtered =
+      selectedPlace && selectedPlace !== "ALL"
+        ? streams.filter((s) => (s.place || "") === selectedPlace)
+        : streams;
+    return filtered;
+  }, [streams, selectedPlace]);
+
   // Run analytics for both people + vehicles
   useEffect(() => {
-    if (streams.length === 0) return;
+    if (visibleStreams.length === 0) return;
     if (analyzingRef.current) return;
 
     const runAnalytics = async () => {
       analyzingRef.current = true;
       setLoadingAnalytics(true);
       try {
-        const subset = streams.slice(0, MAX_STREAMS);
+        const subset = visibleStreams.slice(0, MAX_STREAMS);
 
         const results = await Promise.all(
           subset.map(async (stream) => {
@@ -369,28 +388,56 @@ export default function Analytics() {
     runAnalytics();
     const id = window.setInterval(runAnalytics, REFRESH_MS);
     return () => window.clearInterval(id);
-  }, [streams]);
+  }, [visibleStreams]);
 
   return (
     <div className="page">
-      <div className="page-header">
-        <h2>Analytics</h2>
-        <p className="card-subtitle">
-          Live people & vehicle counts for each active or recorded drone stream.
-        </p>
+      <div className="page-header" style={{ display: "flex", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ flex: 1 }}>
+          <h2>Analytics</h2>
+          <p className="card-subtitle">
+            Live people & vehicle counts for each active or recorded drone stream.
+          </p>
+        </div>
+
+        {/* new: place selector dropdown */}
+        <div style={{ minWidth: 180 }}>
+          <label style={{ display: "block", fontSize: "0.72rem", color: "var(--text-muted)" }}>
+            Filter by place
+          </label>
+          <select
+            value={selectedPlace}
+            onChange={(e) => setSelectedPlace(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "6px 8px",
+              borderRadius: 6,
+              background: "var(--card)",
+              color: "var(--text-main)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              fontSize: "0.9rem",
+            }}
+          >
+            {places.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div style={{ marginTop: "1.2rem" }}>
         {loadingStreams && <div className="loading">Refreshing streams…</div>}
-        {!loadingStreams && streams.length === 0 && (
-          <div className="empty-state">No streams yet.</div>
+        {!loadingStreams && visibleStreams.length === 0 && (
+          <div className="empty-state">No streams for selected place.</div>
         )}
         {error && <div className="error-box">{error}</div>}
       </div>
 
-      {streams.length > 0 && (
+      {visibleStreams.length > 0 && (
         <div className="feeds-grid" style={{ marginTop: "1.2rem" }}>
-          {streams.slice(0, MAX_STREAMS).map((stream) => (
+          {visibleStreams.slice(0, MAX_STREAMS).map((stream) => (
             <AnalyticsCard
               key={stream.streamKey}
               stream={stream}
