@@ -7,8 +7,8 @@ export default function Navbar() {
       <div className="navbar-left">
         <div className="logo-circle">ॐ</div>
         <div className="navbar-title">
-          <h1>AEROVHYN Temple Command</h1>
-          <p>Drone Surveillance & Analytics Console</p>
+          <h1>VIJAYAWADA POLICE BHAVANI DHEEKSHALU CENTRAL COMMAND CONTROL</h1>
+          <p>Drone Surveillance & Analytics Console powered by Aerovhyn Private Limited.</p>
         </div>
       </div>
 
