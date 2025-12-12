@@ -139,7 +139,12 @@ body.__hide-navbar .page,
 .fs-pill.offline { background: var(--pill-off); }
 
 .fs-meta { display:flex; flex-direction:column; gap:2px; pointer-events:none; }
-.fs-place { font-size: 0.9rem; color: var(--text); text-shadow: 0 1px 6px rgba(0,0,0,0.7); }
+.fs-place {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ff3b3b !important;   /* bright alert red */
+  text-shadow: 0 1px 6px rgba(0,0,0,0.7);
+}
 
 /* map button */
 .fs-overlay-right { pointer-events: auto; }
