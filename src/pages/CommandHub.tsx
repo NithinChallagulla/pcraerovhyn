@@ -45,6 +45,7 @@ function useTileHls(hlsUrl: string | undefined, isLive: boolean) {
 export default function CommandHub() {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
     const fetchStreams = async () => {
@@ -53,7 +54,7 @@ export default function CommandHub() {
         if (!res.ok) throw new Error("Failed to fetch streams");
         const json: Stream[] = await res.json();
         if (!cancelled) {
-          // prefer most recent live streams first
+          // prefer live streams first and newest
           const sorted = [...json].sort((a, b) => {
             const aLive = a.status === "LIVE" ? 1 : 0;
             const bLive = b.status === "LIVE" ? 1 : 0;
@@ -74,7 +75,7 @@ export default function CommandHub() {
     };
   }, []);
 
-  // ensure exactly 9 tiles (pad with empty objects)
+  // ensure exactly 9 tiles (pad with empties)
   const tiles = useMemo(() => {
     const out = streams.slice(0, 9);
     while (out.length < 9) out.push({ id: `empty-${out.length}`, streamKey: `EMPTY-${out.length}`, place: "", status: "ENDED" } as Stream);
