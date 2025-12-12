@@ -4,16 +4,6 @@ import Hls from "hls.js";
 import { API_BASE, type Stream } from "../config";
 import "./fullscreen-feeds.css";
 
-/**
- * NOTE: Stream type from config.ts is used; this component will also tolerate
- * optional `lat` and `lon` fields on the stream objects if your backend provides them.
- *
- * Changes in this version:
- * - Hides the app navbar while mounted (adds/removes `__hide-navbar` on body)
- * - Overlay shows only the location (bold) — pilot name removed
- * - Videos attempt autoplay (muted + autoPlay) and include native controls so recorded streams are seekable
- */
-
 const REFRESH_MS = 8000;
 
 function useHlsPlayer(hlsUrl: string, isLive: boolean) {
@@ -25,7 +15,6 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
 
     let hls: Hls | null = null;
 
-    // match DroneFeeds autoplay behavior: muted + playsInline + try to autoplay
     video.muted = true;
     video.loop = !isLive;
     video.playsInline = true;
@@ -35,21 +24,18 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
         const p = video.play();
         if (p && (p as any).catch) (p as any).catch(() => {});
       } catch {
-        // autoplay blocked — user can click tile to play
+        // autoplay blocked
       }
     };
 
     const handleBufferEos = () => {
       if (!video || !hls || isLive) return;
       try {
-        // restart load to play the recorded asset from start
         video.currentTime = 0;
         hls.stopLoad();
         hls.startLoad();
         safePlay();
-      } catch {
-        // ignore
-      }
+      } catch {}
     };
 
     const handleEnded = () => {
@@ -121,11 +107,10 @@ function StreamTile({ stream }: { stream: Stream & { lat?: number; lon?: number 
   const videoRef = useHlsPlayer(stream.hlsUrl, isLive);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Toggle play/pause on click; also allow double-click for tile fullscreen
+  // Toggle play/pause on click; double-click for fullscreen
   const onTileClick = async () => {
     const video = videoRef.current;
     if (!video) return;
-
     try {
       if (video.paused) {
         await video.play().catch(() => {});
@@ -171,7 +156,7 @@ function StreamTile({ stream }: { stream: Stream & { lat?: number; lon?: number 
         muted
         playsInline
         autoPlay
-        controls
+        // controls intentionally removed (autoplay retained)
       />
       <div className="fs-overlay">
         <div className="fs-overlay-left">
@@ -179,8 +164,7 @@ function StreamTile({ stream }: { stream: Stream & { lat?: number; lon?: number 
             {isLive ? "LIVE" : "OFFLINE"}
           </div>
           <div className="fs-meta">
-            {/* pilotName removed — only show bold location */}
-            <div className="fs-place" style={{ fontWeight: 700 }}>
+            <div className="fs-place">
               {stream.place ||
                 (stream.lat != null && stream.lon != null
                   ? `${stream.lat.toFixed(5)}, ${stream.lon.toFixed(5)}`
@@ -213,10 +197,10 @@ export default function FullscreenFeeds() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // hide global navbar while this page is mounted
-    document.body.classList.add("__hide-navbar");
+    // show and lock the app navbar as fixed only for this page
+    document.body.classList.add("__fullscreen-navbar-fixed");
     return () => {
-      document.body.classList.remove("__hide-navbar");
+      document.body.classList.remove("__fullscreen-navbar-fixed");
     };
   }, []);
 
@@ -267,18 +251,7 @@ export default function FullscreenFeeds() {
 
   return (
     <div className="fs-page">
-      {/* keep a minimal topbar — it's inside this page (not the global navbar) */}
-      <div className="fs-topbar">
-        <div className="fs-topbar-left">
-          <h3 className="fs-heading">Fullscreen Drone Grid</h3>
-          <p className="fs-sub">Borderless tiles · double-click a tile for fullscreen · F to fullscreen page</p>
-        </div>
-        <div className="fs-topbar-right">
-          {loading ? <div className="fs-status">Refreshing…</div> : null}
-          {error ? <div className="fs-error">{error}</div> : null}
-        </div>
-      </div>
-
+      {/* internal topbar removed so video grid sits under the fixed navbar */}
       <div className="fs-grid" aria-live="polite">
         {streams.length === 0 && !loading && !error ? (
           <div className="fs-empty">No streams yet.</div>
