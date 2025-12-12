@@ -7,6 +7,11 @@ import "./fullscreen-feeds.css";
 /**
  * NOTE: Stream type from config.ts is used; this component will also tolerate
  * optional `lat` and `lon` fields on the stream objects if your backend provides them.
+ *
+ * Changes in this version:
+ * - Hides the app navbar while mounted (adds/removes `__hide-navbar` on body)
+ * - Overlay shows only the location (bold) — pilot name removed
+ * - Videos attempt autoplay (muted + autoPlay) and include native controls so recorded streams are seekable
  */
 
 const REFRESH_MS = 8000;
@@ -20,6 +25,7 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
 
     let hls: Hls | null = null;
 
+    // match DroneFeeds autoplay behavior: muted + playsInline + try to autoplay
     video.muted = true;
     video.loop = !isLive;
     video.playsInline = true;
@@ -36,6 +42,7 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
     const handleBufferEos = () => {
       if (!video || !hls || isLive) return;
       try {
+        // restart load to play the recorded asset from start
         video.currentTime = 0;
         hls.stopLoad();
         hls.startLoad();
@@ -114,7 +121,7 @@ function StreamTile({ stream }: { stream: Stream & { lat?: number; lon?: number 
   const videoRef = useHlsPlayer(stream.hlsUrl, isLive);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Toggle play/pause on click; also request fullscreen for an individual tile
+  // Toggle play/pause on click; also allow double-click for tile fullscreen
   const onTileClick = async () => {
     const video = videoRef.current;
     if (!video) return;
@@ -126,9 +133,6 @@ function StreamTile({ stream }: { stream: Stream & { lat?: number; lon?: number 
         video.pause();
       }
     } catch {}
-
-    // If user clicked while pressing ctrl or meta, open tile fullscreen
-    // (also allow double-click)
   };
 
   const openTileFullscreen = async () => {
@@ -166,7 +170,8 @@ function StreamTile({ stream }: { stream: Stream & { lat?: number; lon?: number 
         className="fs-video"
         muted
         playsInline
-        // we hide native controls for a full-screen clean look
+        autoPlay
+        controls
       />
       <div className="fs-overlay">
         <div className="fs-overlay-left">
@@ -174,16 +179,25 @@ function StreamTile({ stream }: { stream: Stream & { lat?: number; lon?: number 
             {isLive ? "LIVE" : "OFFLINE"}
           </div>
           <div className="fs-meta">
-            <div className="fs-title">{stream.pilotName || "Unknown Pilot"}</div>
-            <div className="fs-place">
-              {stream.place || (stream.lat && stream.lon ? `${stream.lat.toFixed(5)}, ${stream.lon.toFixed(5)}` : "Unknown Location")}
+            {/* pilotName removed — only show bold location */}
+            <div className="fs-place" style={{ fontWeight: 700 }}>
+              {stream.place ||
+                (stream.lat != null && stream.lon != null
+                  ? `${stream.lat.toFixed(5)}, ${stream.lon.toFixed(5)}`
+                  : "Unknown Location")}
             </div>
           </div>
         </div>
 
         <div className="fs-overlay-right">
           {stream.lat != null && stream.lon != null ? (
-            <button className="fs-map-btn" onClick={(e) => { e.stopPropagation(); openMaps(); }}>
+            <button
+              className="fs-map-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                openMaps();
+              }}
+            >
               Map
             </button>
           ) : null}
@@ -199,6 +213,14 @@ export default function FullscreenFeeds() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // hide global navbar while this page is mounted
+    document.body.classList.add("__hide-navbar");
+    return () => {
+      document.body.classList.remove("__hide-navbar");
+    };
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
 
     const fetchAll = async () => {
@@ -209,9 +231,7 @@ export default function FullscreenFeeds() {
         if (!res.ok) throw new Error("Failed to fetch streams");
         const json: (Stream & { lat?: number; lon?: number })[] = await res.json();
         if (!cancelled) {
-          const sorted = [...json].sort(
-            (a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)
-          );
+          const sorted = [...json].sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
           setStreams(sorted);
         }
       } catch (err: any) {
@@ -230,7 +250,7 @@ export default function FullscreenFeeds() {
     };
   }, []);
 
-  // Enter page fullscreen
+  // Enter page fullscreen with F key
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "F" || e.key === "f") {
@@ -247,6 +267,7 @@ export default function FullscreenFeeds() {
 
   return (
     <div className="fs-page">
+      {/* keep a minimal topbar — it's inside this page (not the global navbar) */}
       <div className="fs-topbar">
         <div className="fs-topbar-left">
           <h3 className="fs-heading">Fullscreen Drone Grid</h3>
