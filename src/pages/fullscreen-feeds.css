@@ -1,6 +1,7 @@
 /* src/pages/fullscreen-feeds.css
    - hides global navbar while page mounted (body.__hide-navbar)
    - removes grid gaps/borders so tiles are truly borderless
+   - removes internal topbar so the grid touches the very top
 */
 
 :root{
@@ -34,7 +35,7 @@ body.__hide-navbar .page,
 }
 
 /* --------------------------
-   Page base
+   Page base (no top padding so grid begins at top edge)
    -------------------------- */
 .fs-page {
   height: 100svh;
@@ -43,23 +44,14 @@ body.__hide-navbar .page,
   color: var(--text);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 8px;
+  gap: 0;
+  padding: 0;              /* <-- removed padding so grid touches top */
+  margin: 0;
   box-sizing: border-box;
 }
 
-/* Topbar inside the page — keep small and overlay-like */
-.fs-topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  z-index: 40;
-  pointer-events: none;
-}
-.fs-topbar-left { pointer-events: auto; }
-.fs-heading { margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--text); }
-.fs-sub { margin: 2px 0 0 0; color: var(--muted); font-size: 0.82rem; }
+/* Remove internal topbar completely (no visuals, no space) */
+.fs-topbar { display: none !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }
 
 /* --------------------------
    GRID: MAKE IT TRULY BORDERLESS
@@ -71,10 +63,11 @@ body.__hide-navbar .page,
   grid-auto-rows: minmax(120px, 1fr);
   gap: 0; /* <- no gaps */
   width: 100%;
-  height: calc(100% - 56px); /* leave space for topbar */
+  height: 100%; /* <- fill the page (no topbar reserved space) */
   padding: 0;
   box-sizing: border-box;
   margin: 0;
+  background: #000; /* ensures any 1px gaps (if introduced) appear black */
 }
 
 /* tile: remove radius and any outline */
@@ -139,10 +132,12 @@ body.__hide-navbar .page,
 .fs-pill.offline { background: var(--pill-off); }
 
 .fs-meta { display:flex; flex-direction:column; gap:2px; pointer-events:none; }
+
+/* Location text in bright alert red and bold */
 .fs-place {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #ff3b3b !important;   /* bright alert red */
+  color: #ff3b3b !important;
   text-shadow: 0 1px 6px rgba(0,0,0,0.7);
 }
 
@@ -174,6 +169,5 @@ body.__hide-navbar .page,
 }
 @media (max-width: 640px) {
   .fs-grid { grid-template-columns: 1fr; }
-  .fs-topbar { padding: 6px; }
   .fs-heading { font-size: 0.95rem; }
 }
