@@ -17,12 +17,12 @@ export type StreamStatus = "PENDING" | "LIVE" | "ENDED";
 
 export interface Stream {
   id: string;
-  pilotName: string;
-  place: string;
+  pilotName?: string;
+  place?: string;
   streamKey: string;
-  rtmpUrl: string;
-  hlsUrl: string;
-  status: StreamStatus;
+  rtmpUrl?: string;
+  hlsUrl?: string;
+  status?: StreamStatus;
   createdAt?: number;
   startedAt?: number | null;
   endedAt?: number | null;
