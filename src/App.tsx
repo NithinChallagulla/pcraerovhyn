@@ -7,6 +7,9 @@ import Master from "./pages/Master";
 import DroneFeeds from "./pages/DroneFeeds";
 import Analytics from "./pages/Analytics"; // combined page
 
+// NEW: Fullscreen / Command Hub view
+import FullscreenFeeds from "./pages/FullscreenFeeds";
+
 export default function App() {
   return (
     <Layout>
@@ -21,6 +24,7 @@ export default function App() {
         <Route path="/analytics" element={<Analytics />} />
 
         {/* NEW: full-screen command hub (3x3 CCTV view) */}
+        <Route path="/fullscreen" element={<FullscreenFeeds />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/master" replace />} />
