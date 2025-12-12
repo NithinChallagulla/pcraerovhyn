@@ -268,16 +268,7 @@ export default function FullscreenFeeds() {
   return (
     <div className="fs-page">
       {/* keep a minimal topbar — it's inside this page (not the global navbar) */}
-      <div className="fs-topbar">
-        <div className="fs-topbar-left">
-          <h3 className="fs-heading">Fullscreen Drone Grid</h3>
-          <p className="fs-sub">Borderless tiles · double-click a tile for fullscreen · F to fullscreen page</p>
-        </div>
-        <div className="fs-topbar-right">
-          {loading ? <div className="fs-status">Refreshing…</div> : null}
-          {error ? <div className="fs-error">{error}</div> : null}
-        </div>
-      </div>
+     
 
       <div className="fs-grid" aria-live="polite">
         {streams.length === 0 && !loading && !error ? (
