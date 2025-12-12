@@ -104,7 +104,6 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
 function StreamCard({ stream }: { stream: Stream }) {
   const isLive = stream.status === "LIVE";
   const videoRef = useHlsPlayer(stream.hlsUrl, isLive);
-  const [showLinks, setShowLinks] = useState(false);
 
   const handleFullscreen = () => {
     const video = videoRef.current;
@@ -140,9 +139,10 @@ function StreamCard({ stream }: { stream: Stream }) {
           <div className="stream-title">
             {stream.place || "Unknown Location"}
           </div>
-          <div className="stream-subtitle">
+                       <div className="stream-subtitle">
             {stream.pilotName || "Unknown Pilot"}
           </div>
+         
         </div>
       </div>
 
@@ -152,12 +152,11 @@ function StreamCard({ stream }: { stream: Stream }) {
           className="stream-video"
           muted
           playsInline
-          controls
+          controls   // seek bar visible
         />
         <div className="stream-controls">
           <button onClick={handleFullscreen}>Fullscreen</button>
           <button onClick={handlePopOut}>Pop-out</button>
-          <button onClick={() => setShowLinks((s) => !s)}>{showLinks ? "Hide Links" : "Stream Links"}</button>
         </div>
       </div>
 
@@ -167,37 +166,6 @@ function StreamCard({ stream }: { stream: Stream }) {
           <span className="stream-key-value">{stream.streamKey}</span>
         </div>
       </div>
-
-      {/* Styled Stream Generated block */}
-      {showLinks && (
-        <div className="stream-links-card">
-          <div className="stream-links-header">Stream Generated</div>
-
-          <div className="stream-links-row">
-            <div className="stream-links-label">RTMP Server</div>
-            <div className="stream-links-value">{stream.rtmpUrl?.replace(/\/[^/]+$/, "/") || "—"}</div>
-            <button className="copy-btn" onClick={() => navigator.clipboard.writeText(stream.rtmpUrl || "")}>Copy</button>
-          </div>
-
-          <div className="stream-links-row">
-            <div className="stream-links-label">Stream Key</div>
-            <div className="stream-links-value mono">{stream.streamKey}</div>
-            <button className="copy-btn" onClick={() => navigator.clipboard.writeText(stream.streamKey)}>Copy</button>
-          </div>
-
-          <div className="stream-links-row">
-            <div className="stream-links-label">RTMP Server + Key</div>
-            <div className="stream-links-value">{stream.rtmpUrl ? `${stream.rtmpUrl}${stream.streamKey}` : "—"}</div>
-            <button className="copy-btn" onClick={() => navigator.clipboard.writeText(stream.rtmpUrl ? `${stream.rtmpUrl}${stream.streamKey}` : "")}>Copy</button>
-          </div>
-
-          <div className="stream-links-row">
-            <div className="stream-links-label">HLS URL</div>
-            <div className="stream-links-value">{stream.hlsUrl || "—"}</div>
-            <button className="copy-btn" onClick={() => navigator.clipboard.writeText(stream.hlsUrl || "")}>Copy</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
