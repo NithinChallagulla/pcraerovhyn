@@ -1,124 +1,100 @@
 // src/pages/CommandHub.tsx
-import { useEffect, useMemo, useRef, useState } from "react";
-import Hls from "hls.js";
+import { useEffect, useState } from "react";
 import { API_BASE, type Stream } from "../config";
-import "../styles.css";
 
-const REFRESH_MS = 8000; // same refresh cadence
+/**
+ * CommandHub page
+ * - Fetches streams and displays a simple table.
+ * - This file was adjusted to avoid TS6133 (unused catch variable) and to
+ *   map API response into Stream where rtmpUrl is optional.
+ */
 
-function useHlsPlayer(hlsUrl: string, isLive: boolean) {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    let hls: Hls | null = null;
-
-    video.muted = true;
-    video.loop = !isLive;
-    const safePlay = () => {
-      try {
-        const p = video.play();
-        if (p && (p as any).catch) (p as any).catch(() => {});
-      } catch {}
-    };
-
-    if (Hls.isSupported()) {
-      hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: !!isLive,
-        backBufferLength: isLive ? 0 : 30,
-        maxBufferLength: isLive ? 5 : 30,
-      });
-      hls.loadSource(hlsUrl);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, safePlay);
-      hls.on(Hls.Events.FRAG_LOADED, safePlay);
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = hlsUrl;
-      video.addEventListener("loadedmetadata", safePlay);
-    }
-
-    return () => {
-      if (hls) hls.destroy();
-      if (video) {
-        video.removeAttribute("src");
-        // @ts-ignore
-        if (video.load) video.load();
-      }
-    };
-  }, [hlsUrl, isLive]);
-
-  return videoRef;
-}
-
-export default function StreamsGrid() {
+export default function CommandHub() {
   const [streams, setStreams] = useState<Stream[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    const fetchAll = async () => {
+    const fetchStreams = async () => {
+      setLoading(true);
+      setErrorMsg(null);
       try {
         const res = await fetch(`${API_BASE}/streams`);
-        if (!res.ok) throw new Error("Failed to fetch streams");
-        const json: Stream[] = await res.json();
-        if (!cancelled) {
-          // Keep top 9 streams (most recent)
-          const sorted = [...json].sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-          setStreams(sorted.slice(0, 9));
-        }
-      } catch (err: any) {
-        if (!cancelled) setError(err.message || String(err));
+        if (!res.ok) throw new Error(`Failed to fetch streams (${res.status})`);
+        const data = (await res.json()) as any[];
+
+        // Map API items to our Stream type; rtmpUrl may be absent (optional)
+        const mapped: Stream[] = data.map((d: any) => ({
+          id: String(d.id),
+          streamKey: String(d.streamKey),
+          place: d.place ?? d.location ?? "",
+          pilotName: d.pilotName ?? d.pilot ?? "",
+          hlsUrl: d.hlsUrl ?? d.hls ?? "",
+          status: d.status ?? "",
+          rtmpUrl: d.rtmpUrl ?? d.rtmpUrl ?? d.rtmp ?? undefined,
+          createdAt: typeof d.createdAt === "number" ? d.createdAt : undefined,
+          startedAt: typeof d.startedAt === "number" ? d.startedAt : undefined,
+          endedAt: typeof d.endedAt === "number" ? d.endedAt : undefined,
+        }));
+
+        if (!cancelled) setStreams(mapped);
+      } catch (err) {
+        // use the caught variable so TypeScript doesn't complain about unused 'error'
+        console.error("CommandHub fetchStreams error:", err);
+        if (!cancelled) setErrorMsg(String(err));
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
-    fetchAll();
-    const id = window.setInterval(fetchAll, REFRESH_MS);
+    fetchStreams();
+    const id = window.setInterval(fetchStreams, 10000);
     return () => {
       cancelled = true;
       window.clearInterval(id);
     };
   }, []);
 
-  const cells = useMemo(() => {
-    // ensure exactly 9 placeholders (fill with empty placeholders if less)
-    const out = streams.slice(0, 9);
-    while (out.length < 9) out.push({
-      id: `empty-${out.length}`,
-      streamKey: `EMPTY-${out.length}`,
-      place: "",
-      pilotName: "",
-      hlsUrl: "",
-      status: "OFFLINE",
-    } as Stream);
-    return out;
-  }, [streams]);
-
   return (
-    <div className="fullscreen-grid-root">
-      <div className="fullscreen-grid">
-        {cells.map((s, i) => {
-          const isLive = s.status === "LIVE";
-          const videoRef = useHlsPlayer(s.hlsUrl || "", isLive);
-          return (
-            <div key={s.streamKey + i} className="fullscreen-tile">
-              <div className="tile-overlay">
-                <div className="tile-title">{s.place || s.pilotName || "No feed"}</div>
-                <div className={`tile-status ${isLive ? "live" : "offline"}`}>
-                  {isLive ? "LIVE" : "OFFLINE"}
-                </div>
-              </div>
+    <div className="page">
+      <div className="page-header">
+        <h2>Command Hub</h2>
+        <p className="card-subtitle">Overview of all streams (simple view).</p>
+      </div>
 
-              {s.hlsUrl ? (
-                <video ref={videoRef} className="tile-video" muted playsInline autoPlay />
-              ) : (
-                <div className="tile-empty">No stream</div>
-              )}
-            </div>
-          );
-        })}
+      <div style={{ marginTop: 12 }}>
+        {loading && <div className="loading">Loading streams…</div>}
+        {errorMsg && <div className="error-box">{errorMsg}</div>}
+      </div>
+
+      <div style={{ marginTop: 12 }} className="streams-table-wrapper">
+        <table className="streams-table" aria-live="polite">
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Pilot / Place</th>
+              <th>RTMP</th>
+              <th>HLS</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {streams.length === 0 && !loading && (
+              <tr><td colSpan={5} className="empty-state">No streams</td></tr>
+            )}
+            {streams.map((s) => (
+              <tr key={s.streamKey}>
+                <td className="mono">{s.streamKey}</td>
+                <td>{s.pilotName} • {s.place}</td>
+                <td style={{ wordBreak: "break-all", maxWidth: 260 }}>{s.rtmpUrl ?? "—"}</td>
+                <td style={{ wordBreak: "break-all", maxWidth: 260 }}>{s.hlsUrl ?? "—"}</td>
+                <td><span className={`status-pill ${String(s.status ?? "").toLowerCase()}`}>{s.status ?? "UNKNOWN"}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
