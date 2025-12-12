@@ -6,7 +6,6 @@ import IncidentBridge from "./pages/IncidentBridge";
 import Master from "./pages/Master";
 import DroneFeeds from "./pages/DroneFeeds";
 import Analytics from "./pages/Analytics"; // combined page
-import CommandHub from "./pages/CommandHub"; // NEW full-screen 3x3 hub
 
 export default function App() {
   return (
@@ -22,7 +21,6 @@ export default function App() {
         <Route path="/analytics" element={<Analytics />} />
 
         {/* NEW: full-screen command hub (3x3 CCTV view) */}
-        <Route path="/command-hub" element={<CommandHub />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/master" replace />} />
