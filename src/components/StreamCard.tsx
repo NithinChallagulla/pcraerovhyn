@@ -1,107 +1,113 @@
 // src/components/StreamCard.tsx
-import { useEffect, useRef } from "react";
+import { useRef, useState } from "react";
 import Hls from "hls.js";
 import type { Stream } from "../config";
 
-interface Props {
-  stream: Stream;
-}
-
-const isProd = import.meta.env.PROD;
-
-export default function StreamCard({ stream }: Props) {
+function useHlsPlayer(hlsUrl: string, isLive: boolean) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const hlsRef = useRef<Hls | null>(null);
 
-  useEffect(() => {
+  // only run if we have a non-empty url
+  if (!hlsUrl) return videoRef;
+
+  // effect moved inside a small helper to keep this file self-contained
+  // Note: keep implementation minimal — the pages mostly used a copy of this
+  // See pages where this hook is duplicated; this is the component-level helper.
+  (function attach() {
     const video = videoRef.current;
     if (!video) return;
 
-    // 🔐 Build final HLS URL
-    //  - In dev: use whatever backend sent (full http://34.93...)
-    //  - In Netlify: ALWAYS use /hls/<streamKey>.m3u8 so it goes
-    //    through our Netlify proxy and stays HTTPS for the browser.
-    const url = isProd
-      ? `/hls/${stream.streamKey}.m3u8`
-      : stream.hlsUrl;
+    let hls: Hls | null = null;
 
-    console.log("Final HLS URL being used:", url);
+    video.muted = true;
+    video.loop = !isLive;
 
-    if (Hls.isSupported()) {
-      const hls = new Hls({
-        maxBufferLength: 10,
-        liveDurationInfinity: true,
-      });
-
-      hlsRef.current = hls;
-      hls.loadSource(url);
-      hls.attachMedia(video);
-
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video
-          .play()
-          .then(() => console.log("HLS playing", stream.streamKey))
-          .catch((err) =>
-            console.error("HLS autoplay error", stream.streamKey, err)
-          );
-      });
-
-      hls.on(Hls.Events.ERROR, (_event, data) => {
-        console.error("HLS error for", stream.streamKey, data);
-      });
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = url;
-      const onCanPlay = () => {
-        video
-          .play()
-          .then(() => console.log("Native HLS playing", stream.streamKey))
-          .catch((err) =>
-            console.error("Native HLS autoplay error", stream.streamKey, err)
-          );
-      };
-      video.addEventListener("canplay", onCanPlay);
-
-      const onError = () => {
-        console.error("Native HLS video error", video.error);
-      };
-      video.addEventListener("error", onError);
-
-      return () => {
-        video.removeEventListener("canplay", onCanPlay);
-        video.removeEventListener("error", onError);
-      };
-    } else {
-      console.error("HLS not supported in this browser");
-    }
-
-    const onVideoError = () => {
-      console.error("Video element error", video.error);
-    };
-    video.addEventListener("error", onVideoError);
-
-    return () => {
-      video.removeEventListener("error", onVideoError);
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
+    const safePlay = () => {
+      try {
+        const p = video.play();
+        if (p && (p as any).catch) (p as any).catch(() => {});
+      } catch {
+        // ignore autoplay errors
       }
     };
-  }, [stream.hlsUrl, stream.streamKey]);
+
+    if (Hls.isSupported()) {
+      const config = isLive
+        ? {
+            enableWorker: true,
+            lowLatencyMode: true,
+            liveSyncDuration: 1,
+            liveMaxLatencyDuration: 2,
+            backBufferLength: 0,
+            maxBufferLength: 5,
+          }
+        : {
+            enableWorker: true,
+            lowLatencyMode: false,
+            backBufferLength: 30,
+            maxBufferLength: 30,
+          };
+
+      hls = new Hls(config);
+      try {
+        hls.loadSource(hlsUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, safePlay);
+        hls.on(Hls.Events.FRAG_LOADED, () => {
+          if (!video.paused) safePlay();
+        });
+      } catch (err) {
+        console.error("HLS attach error:", err);
+      }
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = hlsUrl;
+      video.addEventListener("loadedmetadata", safePlay);
+    }
+
+    // cleanup (best-effort)
+    const cleanup = () => {
+      try {
+        if (hls) hls.destroy();
+      } catch (e) {}
+      if (video) {
+        try {
+          video.removeAttribute("src");
+          // @ts-ignore
+          if (video.load) video.load();
+        } catch (e) {}
+      }
+    };
+
+    // attach cleanup to window unload (this is a cheap but safe pattern)
+    window.addEventListener("beforeunload", cleanup);
+  })();
+
+  return videoRef;
+}
+
+export default function StreamCard({ stream }: { stream: Stream }) {
+  const isLive = stream.status === "LIVE";
+  // pass a guaranteed string to the hook (empty string if none)
+  const videoRef = useHlsPlayer(stream.hlsUrl ?? "", isLive);
+  const [showLinks, setShowLinks] = useState(false);
 
   const handleFullscreen = () => {
     const video = videoRef.current;
     if (!video) return;
-    if (video.requestFullscreen) video.requestFullscreen();
+    if (video.requestFullscreen) {
+      video.requestFullscreen().catch(() => {});
+    }
   };
 
-  const handlePiP = async () => {
-    const video = videoRef.current as any;
+  const handlePopOut = async () => {
+    const video = videoRef.current;
     if (!video) return;
     try {
       if (document.pictureInPictureElement) {
         // @ts-ignore
         await document.exitPictureInPicture();
-      } else if (video.requestPictureInPicture) {
+      }
+      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        // @ts-ignore
         await video.requestPictureInPicture();
       }
     } catch (err) {
@@ -109,34 +115,84 @@ export default function StreamCard({ stream }: Props) {
     }
   };
 
+  const safeRtmp = stream.rtmpUrl ?? "";
+  const safeHls = stream.hlsUrl ?? "";
+
   return (
     <div className="stream-card">
-      <div className="stream-card-header">
-        <span className="status-pill live">LIVE</span>
+      <div className="stream-header">
+        <span className="live-pill">{isLive ? "LIVE" : "OFFLINE"}</span>
         <div className="stream-meta">
-          <h3>{stream.pilotName || "Unknown Pilot"}</h3>
-          <p>{stream.place || "Unknown Location"}</p>
+          <div className="stream-title">{stream.place ?? "Unknown Location"}</div>
+          <div className="stream-subtitle">{stream.pilotName ?? "Unknown Pilot"}</div>
         </div>
       </div>
 
       <div className="stream-video-wrapper">
-        <video
-          ref={videoRef}
-          className="stream-video"
-          muted
-          playsInline
-          controls={false}
-        />
-        <div className="stream-video-actions">
+        {safeHls ? (
+          <video ref={videoRef} className="stream-video" muted playsInline controls />
+        ) : (
+          <div style={{ height: 0, paddingTop: "56.25%", background: "#000" }} />
+        )}
+
+        <div className="stream-controls">
           <button onClick={handleFullscreen}>Fullscreen</button>
-          <button onClick={handlePiP}>Pop-out</button>
+          <button onClick={handlePopOut}>Pop-out</button>
+          <button onClick={() => setShowLinks((s) => !s)}>{showLinks ? "Hide Links" : "Stream Links"}</button>
         </div>
       </div>
 
       <div className="stream-footer">
-        <span className="label">Key:</span>{" "}
-        <span className="mono">{stream.streamKey}</span>
+        <div>
+          <span className="stream-key-label">Key: </span>
+          <span className="stream-key-value">{stream.streamKey}</span>
+        </div>
       </div>
+
+      {showLinks && (
+        <div className="stream-links-card">
+          <div className="stream-links-header">Stream Generated</div>
+
+          <div className="stream-links-row">
+            <div className="stream-links-label">RTMP Server</div>
+            <div className="stream-links-value">{safeRtmp ? safeRtmp.replace(/\/[^/]+$/, "/") : "—"}</div>
+            <button
+              className="copy-btn"
+              onClick={() => {
+                try {
+                  navigator.clipboard.writeText(safeRtmp);
+                } catch {
+                  // noop
+                }
+              }}
+            >
+              Copy
+            </button>
+          </div>
+
+          <div className="stream-links-row">
+            <div className="stream-links-label">Stream Key</div>
+            <div className="stream-links-value mono">{stream.streamKey}</div>
+            <button className="copy-btn" onClick={() => navigator.clipboard.writeText(stream.streamKey)}>
+              Copy
+            </button>
+          </div>
+
+          <div className="stream-links-row">
+            <div className="stream-links-label">RTMP Server + Key</div>
+            <div className="stream-links-value">{safeRtmp ? `${safeRtmp}${stream.streamKey}` : "—"}</div>
+            <button className="copy-btn" onClick={() => navigator.clipboard.writeText(safeRtmp ? `${safeRtmp}${stream.streamKey}` : "")}>
+              Copy
+            </button>
+          </div>
+
+          <div className="stream-links-row">
+            <div className="stream-links-label">HLS URL</div>
+            <div className="stream-links-value">{safeHls || "—"}</div>
+            <button className="copy-btn" onClick={() => navigator.clipboard.writeText(safeHls || "")}>Copy</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
