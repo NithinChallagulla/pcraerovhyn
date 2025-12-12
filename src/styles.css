@@ -1,5 +1,9 @@
-/* src/styles.css - updated: wider content, fixed 3-column feeds, non-floating navbar + restored table styles */
+/* src/styles.css - consolidated & working
+   - wider content, fixed 3-column feeds, non-floating navbar by default
+   - floating navbar support without overlapping page content
+*/
 
+/* Reset & variables */
 *,
 *::before,
 *::after {
@@ -21,7 +25,6 @@
 }
 
 /* App layout */
-
 html, body {
   height: 100%;
 }
@@ -31,7 +34,8 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: radial-gradient(circle at top, #2a0715 0, #05010a 40%, #020005 100%);
   color: var(--text-main);
-  /* navbar is NOT fixed/sticky */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .app-root {
@@ -40,11 +44,12 @@ body {
   flex-direction: column;
 }
 
+/* Default app-main spacing (when navbar is in normal flow) */
 .app-main {
   flex: 1;
-  /* smaller vertical padding, more horizontal room */
   padding: 1rem 1.25rem 2rem;
   width: 100%;
+  transition: padding-top 0.18s ease;
 }
 
 /* Navbar — normal document flow (not sticky/fixed) */
@@ -56,11 +61,9 @@ body {
   background: linear-gradient(to right, #2b050f, #361001, #2b050f);
   border-bottom: 1px solid rgba(255, 207, 120, 0.18);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
-
   position: relative;
   top: auto;
   z-index: 20;
-
   white-space: nowrap;
   min-width: 0;
 }
@@ -419,7 +422,6 @@ body {
 .feeds-grid {
   margin-top: 1.2rem;
   display: grid;
-
   /* Always 3 columns on wide screens, each column keeps a sensible minimum */
   grid-template-columns: repeat(3, minmax(360px, 1fr));
   gap: 1.25rem;
@@ -549,7 +551,8 @@ body {
   font-size: 0.9rem;
   color: var(--text-muted);
 }
-/* ---------- Floating navbar ---------- */
+
+/* ---------- Floating navbar (visual) ---------- */
 .navbar.floating {
   position: fixed;
   top: 12px;
@@ -565,9 +568,21 @@ body {
   border: 1px solid rgba(255,210,145,0.06);
 }
 
-/* When floating, give page content some top padding so nothing is hidden */
-.app-main {
-  padding-top: 4.4rem; /* enough to account for floating navbar */
+/* When navbar is floating, push the page content down so nothing is hidden
+   Use the general sibling selector so this only applies when .navbar.floating
+   is placed before .app-main in the DOM (typical header -> main structure). */
+.navbar.floating ~ .app-main {
+  /* Enough space for navbar height (approx 4.2rem) + shadow/breathing room */
+  padding-top: 6.5rem;
+}
+
+/* Responsive hub fallback for smaller devices */
+@media (max-width: 980px) {
+  .hub-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(5, 1fr); gap: 6px; }
+  /* when floating nav stacks taller on small screens, increase padding a bit more */
+  .navbar.floating ~ .app-main {
+    padding-top: 7.5rem;
+  }
 }
 
 /* ---------- Command Hub (full-screen 3x3) ---------- */
@@ -721,12 +736,7 @@ body {
   background: rgba(255,255,255,0.08);
 }
 
-/* responsive hub fallback for smaller devices */
-@media (max-width: 980px) {
-  .hub-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(5, 1fr); gap: 6px; }
-  .app-main { padding-top: 7.5rem; } /* account for floating navbar stacking */
-}
-
+/* reset button */
 .reset-btn {
   padding: 0.3rem 0.9rem;
   border-radius: 999px;
@@ -744,5 +754,5 @@ body {
   background: rgba(255, 75, 94, 0.28);
 }
 
-/* small rendering improvements */
-* { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+/* small rendering / accessibility improvements */
+:focus { outline: 2px solid rgba(255,211,105,0.12); outline-offset: 2px; }
