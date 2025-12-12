@@ -1,6 +1,6 @@
 /* src/pages/fullscreen-feeds.css
-   - forces the main navbar to be fixed (only when body has __fullscreen-navbar-fixed)
-   - removes internal topbar, makes grid borderless, removes player controls (kept in code)
+   - fixes bottom gap by using consistent viewport math
+   - forces navbar offset correctly and makes grid exactly fill remaining space
 */
 
 :root{
@@ -13,6 +13,11 @@
 
   /* navbar height used to offset the grid so it does not hide behind navbar */
   --navbar-height: 64px;
+}
+
+/* ensure root fills viewport (helps consistent calc behavior) */
+html, body, #root {
+  height: 100%;
 }
 
 /* --------------------------
@@ -30,7 +35,7 @@ body.__fullscreen-navbar-fixed .navbar {
   margin: 0 !important;
 }
 
-/* ensure page content is pushed below fixed navbar */
+/* ensure page content is pushed below fixed navbar by padding (box-sizing included) */
 body.__fullscreen-navbar-fixed .fs-page {
   padding-top: var(--navbar-height);
 }
@@ -38,17 +43,18 @@ body.__fullscreen-navbar-fixed .fs-page {
 /* --------------------------
    Page base (grid begins under navbar)
    -------------------------- */
+/* Use 100vh for clean viewport math and include padding in box-sizing */
 .fs-page {
-  height: 100svh;
+  height: 100vh;               /* use vh so calc below is stable */
   width: 100%;
   background: var(--bg);
   color: var(--text);
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 0;
+  padding: 0;                  /* default padding; overridden when navbar-fixed class is present */
   margin: 0;
-  box-sizing: border-box;
+  box-sizing: border-box;      /* important: padding included in height */
 }
 
 /* hide internal topbar if present */
@@ -57,17 +63,25 @@ body.__fullscreen-navbar-fixed .fs-page {
 /* --------------------------
    GRID: MAKE IT TRULY BORDERLESS
    -------------------------- */
+/* Grid height = viewport height minus navbar height (if navbar present). Using calc(100vh - var(--navbar-height))
+   ensures no extra gap appears at bottom. */
 .fs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-auto-rows: minmax(120px, 1fr);
   gap: 0;
   width: 100%;
-  height: calc(100% - var(--navbar-height)); /* leave space for fixed navbar */
+  height: calc(100vh - var(--navbar-height)); /* exact remaining viewport space */
   padding: 0;
   box-sizing: border-box;
   margin: 0;
   background: #000;
+}
+
+/* If the navbar-fixed class is NOT present (rare), fall back to full height grid */
+body:not(. __fullscreen-navbar-fixed) .fs-grid,
+.fs-grid[data-no-navbar="true"] {
+  height: 100vh;
 }
 
 .fs-tile {
@@ -156,8 +170,8 @@ body.__fullscreen-navbar-fixed .fs-page {
 
 /* responsive */
 @media (max-width: 1000px) {
-  .fs-grid { grid-template-columns: repeat(2, 1fr); }
+  .fs-grid { grid-template-columns: repeat(2, 1fr); height: calc(100vh - var(--navbar-height)); }
 }
 @media (max-width: 640px) {
-  .fs-grid { grid-template-columns: 1fr; }
+  .fs-grid { grid-template-columns: 1fr; height: calc(100vh - var(--navbar-height)); }
 }
