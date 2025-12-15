@@ -1,7 +1,6 @@
-src/pages/fullscreen-feeds.css
+/* src/pages/fullscreen-feeds.css
    - fixes bottom gap by using consistent viewport math
-   - forces navbar offset correctly and makes grid exactly fill remaining space
-*/
+   - forces navbar offset correctly and makes grid exactly fill remaining space */
 
 :root{
   --bg: #000000;
@@ -58,7 +57,12 @@ body.__fullscreen-navbar-fixed .fs-page {
 }
 
 /* hide internal topbar if present */
-.fs-topbar { display: none !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }
+.fs-topbar {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
 
 /* --------------------------
    GRID: MAKE IT TRULY BORDERLESS
@@ -137,10 +141,17 @@ body:not(. __fullscreen-navbar-fixed) .fs-grid,
   align-items: center;
   justify-content: center;
 }
+
 .fs-pill.live { background: var(--pill-live); }
 .fs-pill.offline { background: var(--pill-off); }
 
-.fs-meta { display:flex; flex-direction:column; gap:2px; pointer-events:none; }
+.fs-meta {
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  pointer-events:none;
+}
+
 .fs-place {
   font-size: 0.9rem;
   font-weight: 700;
@@ -149,6 +160,7 @@ body:not(. __fullscreen-navbar-fixed) .fs-grid,
 }
 
 .fs-overlay-right { pointer-events: auto; }
+
 .fs-map-btn {
   background: rgba(0,0,0,0.5);
   color: var(--text);
@@ -159,19 +171,47 @@ body:not(. __fullscreen-navbar-fixed) .fs-grid,
   cursor: pointer;
   transition: transform .12s ease, background .12s ease;
 }
-.fs-map-btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.06); }
 
-.fs-empty { grid-column: 1 / -1; align-self: center; justify-self: center; color: var(--muted); font-size: 1.05rem; }
-.fs-status { color: var(--muted); font-size: 0.9rem; }
-.fs-error { color: #ffb3b3; font-size: 0.9rem; }
+.fs-map-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.06);
+}
+
+.fs-empty {
+  grid-column: 1 / -1;
+  align-self: center;
+  justify-self: center;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.fs-status {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.fs-error {
+  color: #ffb3b3;
+  font-size: 0.9rem;
+}
 
 /* fullscreen sizing */
-:fullscreen .fs-page, :-webkit-full-screen .fs-page { height: 100vh; }
+:fullscreen .fs-page,
+:-webkit-full-screen .fs-page {
+  height: 100vh;
+}
 
 /* responsive */
 @media (max-width: 1000px) {
-  .fs-grid { grid-template-columns: repeat(2, 1fr); height: calc(100vh - var(--navbar-height)); }
+  .fs-grid {
+    grid-template-columns: repeat(2, 1fr);
+    height: calc(100vh - var(--navbar-height));
+  }
 }
+
 @media (max-width: 640px) {
-  .fs-grid { grid-template-columns: 1fr; height: calc(100vh - var(--navbar-height)); }
+  .fs-grid {
+    grid-template-columns: 1fr;
+    height: calc(100vh - var(--navbar-height));
+  }
 }
