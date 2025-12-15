@@ -1,5 +1,6 @@
-/* src/pages/fullscreen-feeds.css
-   TRUE CCTV WALL MODE
+src/pages/fullscreen-feeds.css
+   - fixes bottom gap by using consistent viewport math
+   - forces navbar offset correctly and makes grid exactly fill remaining space
 */
 
 :root{
@@ -9,20 +10,19 @@
   --pill-off: rgba(120,120,120,0.85);
   --text: #e6f7ff;
   --muted: rgba(230,247,255,0.7);
+
+  /* navbar height used to offset the grid so it does not hide behind navbar */
   --navbar-height: 64px;
 }
 
-/* viewport stability */
+/* ensure root fills viewport (helps consistent calc behavior) */
 html, body, #root {
   height: 100%;
-  margin: 0;
-  padding: 0;
-  background: #000;
 }
 
-/* --------------------------------
-   FIX NAVBAR ONLY FOR THIS PAGE
--------------------------------- */
+/* --------------------------
+   Make the global navbar fixed only for this page
+   -------------------------- */
 body.__fullscreen-navbar-fixed header.navbar,
 body.__fullscreen-navbar-fixed .navbar {
   position: fixed !important;
@@ -31,152 +31,147 @@ body.__fullscreen-navbar-fixed .navbar {
   right: 0;
   height: var(--navbar-height) !important;
   z-index: 9999 !important;
-  margin: 0 !important;
   box-shadow: none !important;
+  margin: 0 !important;
 }
 
+/* ensure page content is pushed below fixed navbar by padding (box-sizing included) */
 body.__fullscreen-navbar-fixed .fs-page {
   padding-top: var(--navbar-height);
 }
 
-/* --------------------------------
-   PAGE BASE
--------------------------------- */
+/* --------------------------
+   Page base (grid begins under navbar)
+   -------------------------- */
+/* Use 100vh for clean viewport math and include padding in box-sizing */
 .fs-page {
-  height: 100vh;
+  height: 100vh;               /* use vh so calc below is stable */
   width: 100%;
   background: var(--bg);
   color: var(--text);
   display: flex;
-  flex: 1;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;                  /* default padding; overridden when navbar-fixed class is present */
   margin: 0;
+  box-sizing: border-box;      /* important: padding included in height */
+}
+
+/* hide internal topbar if present */
+.fs-topbar { display: none !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }
+
+/* --------------------------
+   GRID: MAKE IT TRULY BORDERLESS
+   -------------------------- */
+/* Grid height = viewport height minus navbar height (if navbar present). Using calc(100vh - var(--navbar-height))
+   ensures no extra gap appears at bottom. */
+.fs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(120px, 1fr);
+  gap: 0;
+  width: 100%;
+  height: calc(100vh - var(--navbar-height)); /* exact remaining viewport space */
   padding: 0;
   box-sizing: border-box;
-}
-
-/* --------------------------------
-   CCTV GRID (CORE FIX)
--------------------------------- */
-.fs-grid {
-  --min-tile: 260px;
-
-  display: grid;
-  width: 100%;
-  height: calc(100vh - var(--navbar-height));
-  background: #000;
   margin: 0;
-  padding: 0;
-
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(var(--min-tile), 1fr)
-  );
-
-  /* IMPORTANT FIX */
-  grid-auto-rows: minmax(0, 1fr);
-
-  gap: 0;
-  overflow: hidden;
+  background: #000;
 }
 
-/* correct fallback */
-body:not(.__fullscreen-navbar-fixed) .fs-grid {
+/* If the navbar-fixed class is NOT present (rare), fall back to full height grid */
+body:not(. __fullscreen-navbar-fixed) .fs-grid,
+.fs-grid[data-no-navbar="true"] {
   height: 100vh;
 }
 
-/* --------------------------------
-   TILE
--------------------------------- */
 .fs-tile {
   position: relative;
   width: 100%;
   height: 100%;
-  background: #000;
   overflow: hidden;
+  background: #000;
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
   cursor: pointer;
+  outline: none;
   display: flex;
+  align-items: stretch;
+  justify-content: stretch;
 }
 
-/* --------------------------------
-   VIDEO
--------------------------------- */
 .fs-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: #000;
   display: block;
+  background: #000;
+  border: 0;
+  border-radius: 0;
 }
 
-/* --------------------------------
-   OVERLAY
--------------------------------- */
 .fs-overlay {
   position: absolute;
   inset: 8px;
+  pointer-events: none;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  pointer-events: none;
+  gap: 8px;
 }
 
 .fs-overlay-left {
   display: flex;
-  gap: 8px;
   align-items: center;
+  gap: 8px;
   pointer-events: auto;
 }
 
 .fs-pill {
-  padding: 6px 10px;
-  font-size: 0.75rem;
+  padding: 6px 8px;
   font-weight: 700;
-  border-radius: 999px;
-  color: #fff;
+  font-size: 0.75rem;
+  border-radius: 100px;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .fs-pill.live { background: var(--pill-live); }
 .fs-pill.offline { background: var(--pill-off); }
 
+.fs-meta { display:flex; flex-direction:column; gap:2px; pointer-events:none; }
 .fs-place {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #ff3b3b;
+  color: #ff3b3b !important;
   text-shadow: 0 1px 6px rgba(0,0,0,0.7);
 }
 
-.fs-overlay-right {
-  pointer-events: auto;
-}
-
+.fs-overlay-right { pointer-events: auto; }
 .fs-map-btn {
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.5);
   color: var(--text);
   border: 0;
   padding: 6px 10px;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   border-radius: 6px;
   cursor: pointer;
+  transition: transform .12s ease, background .12s ease;
 }
+.fs-map-btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.06); }
 
-.fs-map-btn:hover {
-  background: rgba(255,255,255,0.08);
+.fs-empty { grid-column: 1 / -1; align-self: center; justify-self: center; color: var(--muted); font-size: 1.05rem; }
+.fs-status { color: var(--muted); font-size: 0.9rem; }
+.fs-error { color: #ffb3b3; font-size: 0.9rem; }
+
+/* fullscreen sizing */
+:fullscreen .fs-page, :-webkit-full-screen .fs-page { height: 100vh; }
+
+/* responsive */
+@media (max-width: 1000px) {
+  .fs-grid { grid-template-columns: repeat(2, 1fr); height: calc(100vh - var(--navbar-height)); }
 }
-
-/* --------------------------------
-   STATES
--------------------------------- */
-.fs-empty {
-  grid-column: 1 / -1;
-  align-self: center;
-  justify-self: center;
-  color: var(--muted);
-  font-size: 1.05rem;
-}
-
-/* --------------------------------
-   FULLSCREEN
--------------------------------- */
-:fullscreen .fs-page,
-:-webkit-full-screen .fs-page {
-  height: 100vh;
+@media (max-width: 640px) {
+  .fs-grid { grid-template-columns: 1fr; height: calc(100vh - var(--navbar-height)); }
 }
