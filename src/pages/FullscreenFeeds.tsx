@@ -1,3 +1,5 @@
+
+src/pages/FullscreenFeeds.tsx:
 // src/pages/FullscreenFeeds.tsx
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
@@ -6,9 +8,6 @@ import "./fullscreen-feeds.css";
 
 const REFRESH_MS = 8000;
 
-/* ---------------------------------------
-   HLS PLAYER HOOK
---------------------------------------- */
 function useHlsPlayer(hlsUrl: string, isLive: boolean) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -26,7 +25,9 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
       try {
         const p = video.play();
         if (p && (p as any).catch) (p as any).catch(() => {});
-      } catch {}
+      } catch {
+        // autoplay blocked
+      }
     };
 
     const handleBufferEos = () => {
@@ -47,29 +48,30 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
     };
 
     if (Hls.isSupported()) {
-      hls = new Hls(
-        isLive
-          ? {
-              enableWorker: true,
-              lowLatencyMode: true,
-              liveSyncDuration: 1,
-              liveMaxLatencyDuration: 2,
-              backBufferLength: 0,
-              maxBufferLength: 5,
-            }
-          : {
-              enableWorker: true,
-              lowLatencyMode: false,
-              backBufferLength: 30,
-              maxBufferLength: 30,
-            }
-      );
+      const config = isLive
+        ? {
+            enableWorker: true,
+            lowLatencyMode: true,
+            liveSyncDuration: 1,
+            liveMaxLatencyDuration: 2,
+            backBufferLength: 0,
+            maxBufferLength: 5,
+          }
+        : {
+            enableWorker: true,
+            lowLatencyMode: false,
+            backBufferLength: 30,
+            maxBufferLength: 30,
+          };
 
+      hls = new Hls(config);
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, safePlay);
-      hls.on(Hls.Events.FRAG_LOADED, safePlay);
+      hls.on(Hls.Events.FRAG_LOADED, () => {
+        if (!video.paused) safePlay();
+      });
 
       if (!isLive) {
         hls.on(Hls.Events.BUFFER_EOS, handleBufferEos);
@@ -84,51 +86,56 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
     return () => {
       video.removeEventListener("ended", handleEnded);
       if (hls) {
+        if (!isLive) {
+          hls.off(Hls.Events.BUFFER_EOS, handleBufferEos);
+        }
         try {
           hls.destroy();
         } catch {}
       }
-      video.removeAttribute("src");
-      video.load?.();
+      if (video) {
+        video.removeAttribute("src");
+        // @ts-ignore
+        if (video.load) video.load();
+      }
     };
   }, [hlsUrl, isLive]);
 
   return videoRef;
 }
 
-/* ---------------------------------------
-   STREAM TILE
---------------------------------------- */
-function StreamTile({
-  stream,
-}: {
-  stream: Stream & { lat?: number; lon?: number };
-}) {
+function StreamTile({ stream }: { stream: Stream & { lat?: number; lon?: number } }) {
   const isLive = stream.status === "LIVE";
   const videoRef = useHlsPlayer(stream.hlsUrl, isLive);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const togglePlay = async () => {
+  // Toggle play/pause on click; double-click for fullscreen
+  const onTileClick = async () => {
     const video = videoRef.current;
     if (!video) return;
     try {
-      video.paused ? await video.play() : video.pause();
+      if (video.paused) {
+        await video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
     } catch {}
   };
 
-  const openFullscreen = async () => {
+  const openTileFullscreen = async () => {
+    const container = containerRef.current;
+    if (!container) return;
     try {
-      await containerRef.current?.requestFullscreen();
+      if (container.requestFullscreen) {
+        await container.requestFullscreen();
+      }
     } catch {}
   };
 
   const openMaps = () => {
     if (stream.lat != null && stream.lon != null) {
-      window.open(
-        `https://www.google.com/maps/search/?api=1&query=${stream.lat},${stream.lon}`,
-        "_blank",
-        "noopener,noreferrer"
-      );
+      const url = `https://www.google.com/maps/search/?api=1&query=${stream.lat},${stream.lon}`;
+      window.open(url, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -136,38 +143,40 @@ function StreamTile({
     <div
       className="fs-tile"
       ref={containerRef}
-      onClick={togglePlay}
-      onDoubleClick={openFullscreen}
+      onClick={onTileClick}
+      onDoubleClick={openTileFullscreen}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === "Enter") togglePlay();
-        if (e.key.toLowerCase() === "f") openFullscreen();
+        if (e.key === "Enter") onTileClick();
+        if (e.key === "f" || e.key === "F") openTileFullscreen();
       }}
     >
       <video
         ref={videoRef}
         className="fs-video"
         muted
-        autoPlay
         playsInline
+        autoPlay
+        // controls intentionally removed (autoplay retained)
       />
-
       <div className="fs-overlay">
         <div className="fs-overlay-left">
           <div className={`fs-pill ${isLive ? "live" : "offline"}`}>
             {isLive ? "LIVE" : "OFFLINE"}
           </div>
-          <div className="fs-place">
-            {stream.place ??
-              (stream.lat && stream.lon
-                ? `${stream.lat.toFixed(5)}, ${stream.lon.toFixed(5)}`
-                : "Unknown")}
+          <div className="fs-meta">
+            <div className="fs-place">
+              {stream.place ||
+                (stream.lat != null && stream.lon != null
+                  ? `${stream.lat.toFixed(5)}, ${stream.lon.toFixed(5)}`
+                  : "Unknown Location")}
+            </div>
           </div>
         </div>
 
-        {stream.lat != null && stream.lon != null && (
-          <div className="fs-overlay-right">
+        <div className="fs-overlay-right">
+          {stream.lat != null && stream.lon != null ? (
             <button
               className="fs-map-btn"
               onClick={(e) => {
@@ -177,67 +186,65 @@ function StreamTile({
             >
               Map
             </button>
-          </div>
-        )}
+          ) : null}
+        </div>
       </div>
     </div>
   );
 }
 
-/* ---------------------------------------
-   FULLSCREEN FEEDS PAGE
---------------------------------------- */
 export default function FullscreenFeeds() {
-  const [streams, setStreams] = useState<
-    (Stream & { lat?: number; lon?: number })[]
-  >([]);
+  const [streams, setStreams] = useState<(Stream & { lat?: number; lon?: number })[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /* lock navbar */
   useEffect(() => {
+    // show and lock the app navbar as fixed only for this page
     document.body.classList.add("__fullscreen-navbar-fixed");
-    return () =>
+    return () => {
       document.body.classList.remove("__fullscreen-navbar-fixed");
+    };
   }, []);
 
-  /* fetch streams */
   useEffect(() => {
     let cancelled = false;
 
     const fetchAll = async () => {
       try {
         setLoading(true);
+        setError(null);
         const res = await fetch(`${API_BASE}/streams`);
-        if (!res.ok) throw new Error("Fetch failed");
-        const data = await res.json();
+        if (!res.ok) throw new Error("Failed to fetch streams");
+        const json: (Stream & { lat?: number; lon?: number })[] = await res.json();
         if (!cancelled) {
-          setStreams(
-            [...data].sort(
-              (a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)
-            )
-          );
+          const sorted = [...json].sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+          setStreams(sorted);
         }
-      } catch (e: any) {
-        if (!cancelled) setError(e.message);
+      } catch (err: any) {
+        console.error(err);
+        if (!cancelled) setError(err.message || "Failed to fetch streams");
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
 
     fetchAll();
-    const id = setInterval(fetchAll, REFRESH_MS);
+    const id = window.setInterval(fetchAll, REFRESH_MS);
     return () => {
       cancelled = true;
-      clearInterval(id);
+      window.clearInterval(id);
     };
   }, []);
 
-  /* fullscreen shortcut */
+  // Enter page fullscreen with F key
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "f") {
-        document.documentElement.requestFullscreen?.().catch(() => {});
+      if (e.key === "F" || e.key === "f") {
+        const el = document.documentElement;
+        if (el.requestFullscreen) {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          el.requestFullscreen().catch(() => {});
+        }
       }
     };
     window.addEventListener("keydown", onKey);
@@ -246,19 +253,15 @@ export default function FullscreenFeeds() {
 
   return (
     <div className="fs-page">
-      <div
-        className="fs-grid"
-        aria-live="polite"
-        style={{ "--stream-count": streams.length } as React.CSSProperties}
-      >
+      {/* internal topbar removed so video grid sits under the fixed navbar */}
+      <div className="fs-grid" aria-live="polite">
         {streams.length === 0 && !loading && !error ? (
-          <div className="fs-empty">No streams yet</div>
+          <div className="fs-empty">No streams yet.</div>
         ) : (
-          streams.map((s) => (
-            <StreamTile key={s.streamKey} stream={s} />
-          ))
+          streams.slice(0, 9).map((s) => <StreamTile key={s.streamKey} stream={s} />)
         )}
       </div>
     </div>
   );
 }
+
