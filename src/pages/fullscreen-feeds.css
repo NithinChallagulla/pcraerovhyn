@@ -98,7 +98,6 @@ body:not(.__fullscreen-navbar-fixed) .fs-grid {
   display: flex;
 
   /* real CCTV feel */
-  aspect-ratio: 9 / 16;
 }
 
 /* --------------------------------
