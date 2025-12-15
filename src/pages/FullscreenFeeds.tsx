@@ -252,7 +252,12 @@ export default function FullscreenFeeds() {
   return (
     <div className="fs-page">
       {/* internal topbar removed so video grid sits under the fixed navbar */}
-      <div className="fs-grid" aria-live="polite">
+      <div
+  className="fs-grid"
+  aria-live="polite"
+  style={{ "--stream-count": streams.length } as React.CSSProperties}
+>
+
         {streams.length === 0 && !loading && !error ? (
           <div className="fs-empty">No streams yet.</div>
         ) : (
