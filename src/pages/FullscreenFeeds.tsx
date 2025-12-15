@@ -1,5 +1,3 @@
-
-src/pages/FullscreenFeeds.tsx:
 // src/pages/FullscreenFeeds.tsx
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
