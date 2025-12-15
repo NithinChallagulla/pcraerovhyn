@@ -1,8 +1,5 @@
 /* src/pages/fullscreen-feeds.css
    TRUE CCTV WALL MODE
-   - dynamic auto grid
-   - no borders, no gaps
-   - perfect fullscreen math
 */
 
 :root{
@@ -12,7 +9,6 @@
   --pill-off: rgba(120,120,120,0.85);
   --text: #e6f7ff;
   --muted: rgba(230,247,255,0.7);
-
   --navbar-height: 64px;
 }
 
@@ -52,16 +48,17 @@ body.__fullscreen-navbar-fixed .fs-page {
   background: var(--bg);
   color: var(--text);
   display: flex;
+  flex: 1;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
 /* --------------------------------
-   CCTV GRID (THE MAGIC)
+   CCTV GRID (CORE FIX)
 -------------------------------- */
 .fs-grid {
-  --min-tile: 260px; /* change this to control density */
+  --min-tile: 260px;
 
   display: grid;
   width: 100%;
@@ -75,18 +72,20 @@ body.__fullscreen-navbar-fixed .fs-page {
     minmax(var(--min-tile), 1fr)
   );
 
-  grid-auto-rows: 1fr;
+  /* IMPORTANT FIX */
+  grid-auto-rows: minmax(0, 1fr);
+
   gap: 0;
   overflow: hidden;
 }
 
-/* fallback */
+/* correct fallback */
 body:not(.__fullscreen-navbar-fixed) .fs-grid {
   height: 100vh;
 }
 
 /* --------------------------------
-   TILE = CCTV MONITOR
+   TILE
 -------------------------------- */
 .fs-tile {
   position: relative;
@@ -96,8 +95,6 @@ body:not(.__fullscreen-navbar-fixed) .fs-grid {
   overflow: hidden;
   cursor: pointer;
   display: flex;
-
-  /* real CCTV feel */
 }
 
 /* --------------------------------
