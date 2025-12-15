@@ -66,17 +66,25 @@ body.__fullscreen-navbar-fixed .fs-page {
 /* Grid height = viewport height minus navbar height (if navbar present). Using calc(100vh - var(--navbar-height))
    ensures no extra gap appears at bottom. */
 .fs-grid {
+  --min-tile: 280px; /* controls how small a tile can go */
+
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: minmax(120px, 1fr);
-  gap: 0;
   width: 100%;
-  height: calc(100vh - var(--navbar-height)); /* exact remaining viewport space */
-  padding: 0;
-  box-sizing: border-box;
+  height: calc(100vh - var(--navbar-height));
   margin: 0;
+  padding: 0;
   background: #000;
+
+  /* MAGIC */
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(var(--min-tile), 1fr)
+  );
+
+  grid-auto-rows: 1fr;
+  gap: 0;
 }
+
 
 /* If the navbar-fixed class is NOT present (rare), fall back to full height grid */
 body:not(. __fullscreen-navbar-fixed) .fs-grid,
