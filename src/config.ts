@@ -1,17 +1,20 @@
 // src/config.ts
 
 // Detect if we're on Netlify (build / production) or local dev
+// src/config.ts
+
 const isProd = import.meta.env.PROD;
 
-// Backend for RTMP / streams
+// RTMP / Streams backend (ingest VM)
 export const API_BASE = isProd
-  ? "/api"                            // Netlify → proxy to VM
-  : "http://34.93.170.150:4000";      // Local dev → direct VM
+  ? "/api"
+  : "http://35.244.22.167:4000";
 
-// Backend for analytics
+// Analytics backend
 export const ANALYTICS_BASE = isProd
-  ? "/analytics-api"                  // Netlify → proxy to analytics VM
-  : "http://35.244.22.167:8000";      // Local dev → direct VM
+  ? "/analytics-api"
+  : "http://34.93.170.150:8000";
+
 
 export type StreamStatus = "PENDING" | "LIVE" | "ENDED";
 
