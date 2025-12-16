@@ -1,32 +1,34 @@
-# Proxy for Incident Bridge (webhook service)
+# -------------------------------
+# RTMP / Streams backend (ingest VM)
+# -------------------------------
 [[redirects]]
-  from = "/api/bridge/*"
-  to = "http://34.93.170.150:9000/:splat"
-  status = 200
-  force = true
-# Proxy for RTMP backend (streams service)
-[[redirects]]
-  from = "/api/*"
-  to = "http://34.93.170.150:4000/:splat"
-  status = 200
-  force = true
+from = "/api/*"
+to = "http://35.244.22.167:4000/:splat"
+status = 200
+force = true
 
-# Proxy for analytics backend
+# -------------------------------
+# Analytics backend
+# -------------------------------
 [[redirects]]
-  from = "/analytics-api/*"
-  to = "http://35.244.22.167:8000/:splat"
-  status = 200
-  force = true
+from = "/analytics-api/*"
+to = "http://34.93.170.150:8000/:splat"
+status = 200
+force = true
 
-# Proxy for HLS video segments/playlists
+# -------------------------------
+# HLS playback (ingest VM)
+# -------------------------------
 [[redirects]]
-  from = "/hls/*"
-  to = "http://34.93.170.150/hls/:splat"
-  status = 200
-  force = true
+from = "/hls/*"
+to = "http://35.244.22.167/hls/:splat"
+status = 200
+force = true
 
-# SPA fallback: any other route -> index.html
+# -------------------------------
+# SPA fallback
+# -------------------------------
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+from = "/*"
+to = "/index.html"
+status = 200
