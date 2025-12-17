@@ -327,3 +327,75 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+
+/* =========================================================
+   FINAL COLOR OVERRIDES — DO NOT TOUCH LAYOUT
+   ========================================================= */
+
+/* Global background */
+body {
+  background: #f4f6f8 !important;
+  color: #1f2328 !important;
+}
+
+/* Navbar */
+.navbar {
+  background: #fff6dc !important;
+  border-bottom: 1px solid rgba(0,0,0,0.08) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+}
+
+/* Cards */
+.master-card,
+.stream-card {
+  background: #ffffff !important;
+  border-color: rgba(0,0,0,0.1) !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+}
+
+/* Page headings */
+.page-header h2 {
+  color: #1f2328 !important;
+}
+
+/* Muted text */
+.page-header p,
+.card-subtitle,
+.stream-subtitle {
+  color: #5f6b7a !important;
+}
+
+/* Status labels */
+.status-pill.pending {
+  background: #fff1b8 !important;
+  color: #7a5b00 !important;
+}
+
+.status-pill.live {
+  background: #ffd6d6 !important;
+  color: #b11226 !important;
+}
+
+.status-pill.ended {
+  background: #e5e7eb !important;
+  color: #6b7280 !important;
+}
+
+/* Primary buttons */
+.master-form button,
+.reset-btn {
+  background: #b11226 !important;
+  color: #ffffff !important;
+}
+
+/* Nav active */
+.nav-link.active {
+  background: #b11226 !important;
+  color: #ffffff !important;
+}
+
+/* Video container stays dark (intentional) */
+.stream-video-wrapper {
+  background: #111 !important;
+}
