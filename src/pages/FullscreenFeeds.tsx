@@ -256,7 +256,7 @@ export default function FullscreenFeeds() {
         {streams.length === 0 && !loading && !error ? (
           <div className="fs-empty">No streams yet.</div>
         ) : (
-          streams.slice(0, 9).map((s) => <StreamTile key={s.streamKey} stream={s} />)
+liveStreams = streams.filter(s => s.status === "LIVE").slice(0, 16)
         )}
       </div>
     </div>
