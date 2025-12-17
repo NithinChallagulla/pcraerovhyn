@@ -223,41 +223,38 @@ export default function Master() {
                     <th />
                   </tr>
                 </thead>
-                <tbody>
-                  {streams.map((s) => (
-                    <tr key={s.id}>
-                      <td>{s.pilotName}</td>
-                      <td>{s.place}</td>
-                      <td className="mono">{s.streamKey}</td>
-                      <td>
-                        <span
-                          className={`status-pill ${s.status.toLowerCase()}`}
-                        >
-                          {s.status}
-                        </span>
-                      </td>
-                      <td>
-                        {s.createdAt
-                          ? new Date(s.createdAt).toLocaleTimeString(
-                              "en-IN",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            )
-                          : "-"}
-                      </td>
-                      <td>
-                        <button
-                          className="danger-btn"
-                          onClick={() => handleDelete(s.id)}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+               <tbody>
+  {streams.map((s, index) => (
+    <tr key={s.id}>
+      <td className="mono">{index + 1}</td>
+      <td>{s.pilotName}</td>
+      <td>{s.place}</td>
+      <td className="mono">{s.streamKey}</td>
+      <td>
+        <span className={`status-pill ${s.status.toLowerCase()}`}>
+          {s.status}
+        </span>
+      </td>
+      <td>
+        {s.createdAt
+          ? new Date(s.createdAt).toLocaleTimeString("en-IN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "-"}
+      </td>
+      <td>
+        <button
+          className="danger-btn"
+          onClick={() => handleDelete(s.id)}
+        >
+          Delete
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
               </table>
             </div>
           )}
