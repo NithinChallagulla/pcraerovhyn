@@ -214,15 +214,17 @@ export default function Master() {
             <div className="streams-table-wrapper">
               <table className="streams-table">
                 <thead>
-                  <tr>
-                    <th>Pilot</th>
-                    <th>Place</th>
-                    <th>Key</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th />
-                  </tr>
-                </thead>
+  <tr>
+    <th>S.No</th>
+    <th>Pilot</th>
+    <th>Place</th>
+    <th>Key</th>
+    <th>Status</th>
+    <th>Created</th>
+    <th />
+  </tr>
+</thead>
+
                <tbody>
   {streams.map((s, index) => (
     <tr key={s.id}>
