@@ -87,7 +87,7 @@ body {
 
 /* Logos */ 
 .nav-logo { 
-  height: 60px; /* Made bigger */
+  height: 80px; /* Made bigger */
   width: auto; 
   object-fit: contain; 
   filter: drop-shadow(0 0 6px rgba(255, 212, 121, 0.45)); 
