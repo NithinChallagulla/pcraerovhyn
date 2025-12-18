@@ -170,89 +170,79 @@ function AnalyticsCard({
       {hasAnyData && (
         <div style={{ marginTop: "0.8rem", display: "grid", gap: "0.75rem" }}>
           {/* People block */}
-          {people && (
-            <div>
-              <div className="card-subtitle" style={{ fontWeight: 600 }}>
-                People
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "1.2rem",
-                  flexWrap: "wrap",
-                  marginTop: "0.3rem",
-                }}
-              >
-                <div>
-                  <div className="card-subtitle">Unique (window)</div>
-                  <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
-                    {people.totalUnique}
-                  </div>
-                </div>
-                <div>
-                  <div className="card-subtitle">In latest frame</div>
-                  <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
-                    {people.currentFrameCount}
-                  </div>
-                </div>
-                <div>
-                  <div className="card-subtitle">Density</div>
-                  <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>
-                    {people.density}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+         {people && (
+  <div>
+    <div className="card-subtitle" style={{ fontWeight: 600 }}>
+      People
+    </div>
+    <div
+      style={{
+        display: "flex",
+        gap: "1.2rem",
+        flexWrap: "wrap",
+        marginTop: "0.3rem",
+      }}
+    >
+      <div>
+        <div className="card-subtitle">Unique (window)</div>
+        <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
+          {people.totalUnique ?? (people as any).unique ?? 0}
+        </div>
+      </div>
+      <div>
+        <div className="card-subtitle">In latest frame</div>
+        <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
+          {people.currentFrameCount ?? (people as any).current ?? 0}
+        </div>
+      </div>
+      <div>
+        <div className="card-subtitle">Density</div>
+        <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>
+          {people.density ?? "—"}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
 
           {/* Vehicles block */}
-          {vehicles && (
-            <div>
-              <div className="card-subtitle" style={{ fontWeight: 600 }}>
-                Vehicles
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "1.2rem",
-                  flexWrap: "wrap",
-                  marginTop: "0.3rem",
-                }}
-              >
-                <div>
-                  <div className="card-subtitle">Unique (window)</div>
-                  <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
-                    {vehicles.totalUnique}
-                  </div>
-                </div>
-                <div>
-                  <div className="card-subtitle">In latest frame</div>
-                  <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
-                    {vehicles.currentFrameCount}
-                  </div>
-                </div>
-                <div>
-                  <div className="card-subtitle">Density</div>
-                  <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>
-                    {vehicles.density}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Updated-at hint */}
-          {(people || vehicles) && (
-            <div className="hint">
-              Updated at{" "}
-              {new Date(
-                1000 *
-                  Math.max(people?.timestamp ?? 0, vehicles?.timestamp ?? 0)
-              ).toLocaleTimeString()}
-            </div>
-          )}
+{vehicles && (
+  <div>
+    <div className="card-subtitle" style={{ fontWeight: 600 }}>
+      Vehicles
+    </div>
+    <div
+      style={{
+        display: "flex",
+        gap: "1.2rem",
+        flexWrap: "wrap",
+        marginTop: "0.3rem",
+      }}
+    >
+      <div>
+        <div className="card-subtitle">Unique (window)</div>
+        <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
+          {vehicles.totalUnique ?? (vehicles as any).unique ?? 0}
         </div>
-      )}
+      </div>
+      <div>
+        <div className="card-subtitle">In latest frame</div>
+        <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
+          {vehicles.currentFrameCount ?? (vehicles as any).current ?? 0}
+        </div>
+      </div>
+      <div>
+        <div className="card-subtitle">Density</div>
+        <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>
+          {vehicles.density ?? "—"}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
       {!hasAnyData && !loadingAnalytics && (
         <div className="empty-state" style={{ marginTop: "0.7rem" }}>
