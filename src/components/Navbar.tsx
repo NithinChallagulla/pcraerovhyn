@@ -1,3 +1,4 @@
+// navbar.tsx
 import { NavLink } from "react-router-dom";
 import policeLogo from "./policelogo.png";
 import aerovhynLogo from "./aerovhyn (2).png";
@@ -7,13 +8,17 @@ export default function Navbar() {
     <header className="navbar">
       {/* LEFT SIDE */}
       <div className="navbar-left">
-        <div className="logo-circle">
-          AP <br />
-          POLICE
-        </div>
         <div className="navbar-title">
           <h1>VIJAYAWADA POLICE CENTRAL DRONE COMMAND CONTROL</h1>
           <p>Drone Surveillance & Analytics Console powered by Aerovhyn Private Limited.</p>
+        </div>
+      </div>
+
+      {/* CENTER - AP POLICE LOGO */}
+      <div className="navbar-center">
+        <div className="logo-circle">
+          AP <br />
+          POLICE
         </div>
       </div>
 
