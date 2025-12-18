@@ -13,7 +13,7 @@
   --accent-white: #ffffff; 
   --border-soft: rgba(255, 212, 121, 0.3); 
   --text-main: #000000; 
-  --text-muted: #333333; 
+  --text-muted: #000000; /* Darkened to max */
   --danger: #ff4b6e; 
 } 
 
@@ -47,7 +47,7 @@ body {
 .navbar { 
   display: flex; 
   align-items: center; 
-  justify-content: space-between; 
+  justify-content: center; /* Centered the app/navbar content */
   padding: 0.75rem 1.25rem; 
   background: linear-gradient(to right, #ffffff, #fff9e6, #ffe6e6); 
   border-bottom: 1px solid rgba(255, 212, 121, 0.18); 
@@ -85,21 +85,21 @@ body {
 
 /* Logos */ 
 .nav-logo { 
-  height: 48px; 
+  height: 60px; /* Made bigger */
   width: auto; 
   object-fit: contain; 
   filter: drop-shadow(0 0 6px rgba(255, 212, 121, 0.45)); 
 } 
 
 .logo-circle { 
-  width: 40px; 
-  height: 40px; 
+  width: 50px; /* Made bigger */
+  height: 50px; /* Made bigger */
   border-radius: 999px; 
-  border: 2px solid var(--accent-gold); 
+  border: none; /* Removed backside ring (border) */
   display: flex; 
   align-items: center; 
   justify-content: center; 
-  color: var(--accent-gold); 
+  color: var(--accent-red); /* Put in red */
   font-weight: 700; 
   box-shadow: 0 0 14px rgba(255, 212, 121, 0.4); 
 } 
@@ -521,6 +521,4 @@ body {
 .stream-footer { 
   display: flex; 
   align-items: center; 
-  justify-content: space-between; 
-  margin-top: 0.3rem; 
-  font-size: 0.75
+  justify-content
