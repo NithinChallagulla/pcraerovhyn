@@ -14,13 +14,14 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* CENTER - AP POLICE LOGO */}
-      <div className="navbar-center">
-        <div className="logo-circle">
-          AP <br />
-          POLICE
-        </div>
-      </div>
+{/*
+<div className="navbar-center">
+  <div className="logo-circle">
+    AP <br />
+    POLICE
+  </div>
+</div>
+*/}
 
       {/* RIGHT NAVIGATION + LOGOS */}
       <div className="navbar-right">
