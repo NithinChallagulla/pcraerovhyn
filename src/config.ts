@@ -12,8 +12,9 @@ export const API_BASE = isProd
 
 // Analytics backend
 export const ANALYTICS_BASE = isProd
-  ? "/analytics-api"
-  : "http://34.93.170.150:8000";
+  ? "/analytics-api/analytics"
+  : "http://34.93.170.150:8000/analytics";
+
 
 
 export type StreamStatus = "PENDING" | "LIVE" | "ENDED";
