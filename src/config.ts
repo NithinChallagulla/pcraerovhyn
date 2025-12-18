@@ -11,9 +11,11 @@ export const API_BASE = isProd
   : "http://35.244.22.167:4000";
 
 // Analytics backend
+// Analytics backend
 export const ANALYTICS_BASE = isProd
-  ? "/analytics-api"
-  : "http://34.93.170.150:8001";
+  ? "/analytics-api/analytics"
+  : "http://34.93.170.150:8000/analytics";
+
 
 
 
