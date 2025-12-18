@@ -38,7 +38,6 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
       }
     };
 
-    // for recorded streams, force hard loop when Hls hits EOS
     const handleBufferEos = () => {
       if (!video || !hls || isLive) return;
       try {
@@ -104,7 +103,6 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
       }
       if (video) {
         video.removeAttribute("src");
-        // @ts-ignore
         if (video.load) video.load();
       }
     };
@@ -269,6 +267,10 @@ export default function Analytics() {
 
   const [selectedPlace, setSelectedPlace] = useState<string>("ALL");
 
+  // Track fake data counters per stream key
+  const fakeDataRef = useRef<Record<string, { people: number; vehicles: number }>>({});
+  const startTimeRef = useRef<number>(Date.now());
+
   useEffect(() => {
     let cancelled = false;
 
@@ -284,6 +286,16 @@ export default function Analytics() {
             (a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)
           );
           setStreams(sorted);
+
+          // Initialize fake data counters for each stream
+          sorted.forEach((stream) => {
+            if (!fakeDataRef.current[stream.streamKey]) {
+              fakeDataRef.current[stream.streamKey] = {
+                people: Math.floor(Math.random() * 50) + 10,
+                vehicles: Math.floor(Math.random() * 30) + 5,
+              };
+            }
+          });
         }
       } catch (err: any) {
         console.error(err);
@@ -317,6 +329,39 @@ export default function Analytics() {
     return filtered;
   }, [streams, selectedPlace]);
 
+  // Helper function to calculate fake increments based on elapsed time
+  const calculateFakeAnalytics = (streamKey: string) => {
+    const elapsed = (Date.now() - startTimeRef.current) / 1000; // elapsed seconds
+    const baseData = fakeDataRef.current[streamKey] || { people: 20, vehicles: 10 };
+
+    // People analytics:
+    // +2 every 10 seconds
+    // +8 every 22 seconds
+    const peopleIncrements10s = Math.floor(elapsed / 10) * 2;
+    const peopleIncrements22s = Math.floor(elapsed / 22) * 8;
+    const totalPeople = baseData.people + peopleIncrements10s + peopleIncrements22s;
+
+    // Vehicles analytics:
+    // +4 every 8 seconds
+    // +6 every 25 seconds
+    const vehicleIncrements8s = Math.floor(elapsed / 8) * 4;
+    const vehicleIncrements25s = Math.floor(elapsed / 25) * 6;
+    const totalVehicles = baseData.vehicles + vehicleIncrements8s + vehicleIncrements25s;
+
+    return {
+      people: {
+        totalUnique: totalPeople,
+        currentFrameCount: Math.floor(totalPeople * 0.7),
+        density: totalPeople > 50 ? "High" : totalPeople > 30 ? "Medium" : "Low",
+      },
+      vehicles: {
+        totalUnique: totalVehicles,
+        currentFrameCount: Math.floor(totalVehicles * 0.65),
+        density: totalVehicles > 25 ? "High" : totalVehicles > 15 ? "Medium" : "Low",
+      },
+    };
+  };
+
   useEffect(() => {
     if (visibleStreams.length === 0) return;
     if (analyzingRef.current) return;
@@ -331,28 +376,13 @@ export default function Analytics() {
           subset.map(async (stream) => {
             const key = stream.streamKey;
             try {
-              const [peopleRes, vehicleRes] = await Promise.all([
-                fetch(
-                  `${ANALYTICS_BASE}/analytics/people?streamKey=${encodeURIComponent(
-                    key
-                  )}`
-                ),
-                fetch(
-                  `${ANALYTICS_BASE}/analytics/vehicles?streamKey=${encodeURIComponent(
-                    key
-                  )}`
-                ),
-              ]);
+              // Generate fake analytics data based on elapsed time
+              const fakeData = calculateFakeAnalytics(key);
 
-              const combined: CombinedAnalytics = {};
-
-              if (peopleRes.ok) {
-                combined.people = (await peopleRes.json()) as AnalyticsResponse;
-              }
-              if (vehicleRes.ok) {
-                combined.vehicles =
-                  (await vehicleRes.json()) as AnalyticsResponse;
-              }
+              const combined: CombinedAnalytics = {
+                people: fakeData.people as AnalyticsResponse,
+                vehicles: fakeData.vehicles as AnalyticsResponse,
+              };
 
               return { key, combined };
             } catch (err) {
