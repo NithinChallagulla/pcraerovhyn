@@ -47,7 +47,7 @@ body {
 .navbar { 
   display: flex; 
   align-items: center; 
-  justify-content: center; /* Centered the app/navbar content */
+  justify-content: space-between; /* Changed to space-between for left-center-right layout */
   padding: 0.75rem 1.25rem; 
   background: linear-gradient(to right, #ffffff, #fff9e6, #ffe6e6); 
   border-bottom: 1px solid rgba(255, 212, 121, 0.18); 
@@ -64,6 +64,12 @@ body {
   display: flex; 
   align-items: center; 
   gap: 0.75rem; 
+} 
+
+.navbar-center { 
+  flex: 1; /* Takes up available space to center the logo */
+  display: flex; 
+  justify-content: center; 
 } 
 
 .navbar-right { 
@@ -442,83 +448,4 @@ body {
   } 
 } 
 
-.stream-card { 
-  background: var(--card); 
-  border-radius: 18px; 
-  padding: 0.75rem 0.75rem 0.9rem; 
-  border: 1px solid var(--border-soft); 
-  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.15); 
-  display: flex; 
-  flex-direction: column; 
-  gap: 0.5rem; 
-  min-width: 0; 
-} 
-
-.stream-header { 
-  display: flex; 
-  align-items: center; 
-  gap: 0.5rem; 
-} 
-
-.live-pill { 
-  padding: 0.2rem 0.55rem; 
-  border-radius: 999px; 
-  background: radial-gradient(circle at center, #ff4b4b, #7f0410); 
-  font-size: 0.7rem; 
-  text-transform: uppercase; 
-  letter-spacing: 0.18em; 
-} 
-
-.stream-meta { 
-  display: flex; 
-  flex-direction: column; 
-} 
-
-.stream-title { 
-  font-size: 0.9rem; 
-} 
-
-.stream-subtitle { 
-  font-size: 0.75rem; 
-  color: var(--text-muted); 
-} 
-
-.stream-video-wrapper { 
-  position: relative; 
-  margin-top: 0.35rem; 
-  border-radius: 14px; 
-  overflow: hidden; 
-  background: #000; 
-  width: 100%; 
-  aspect-ratio: 16 / 9; 
-} 
-
-.stream-video { 
-  width: 100%; 
-  height: 100%; 
-  display: block; 
-  object-fit: cover; 
-} 
-
-.stream-controls { 
-  position: absolute; 
-  right: 0.4rem; 
-  bottom: 0.4rem; 
-  display: flex; 
-  gap: 0.25rem; 
-} 
-
-.stream-controls button { 
-  padding: 0.25rem 0.55rem; 
-  border-radius: 999px; 
-  border: none; 
-  font-size: 0.65rem; 
-  background: rgba(0, 0, 0, 0.6); 
-  color: var(--accent-white); 
-  cursor: pointer; 
-} 
-
-.stream-footer { 
-  display: flex; 
-  align-items: center; 
-  justify-content
+.stream
