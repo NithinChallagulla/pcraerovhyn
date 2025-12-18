@@ -12,9 +12,10 @@ force = true
 # -------------------------------
 [[redirects]]
 from = "/analytics-api/*"
-to = "http://34.93.170.150:8000/:splat"
+to = "http://34.93.170.150:8001/:splat"
 status = 200
 force = true
+
 
 # -------------------------------
 # HLS playback (ingest VM)
