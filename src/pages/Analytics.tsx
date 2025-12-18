@@ -134,17 +134,15 @@ function AnalyticsCard({
       <div className="stream-header">
         <span className="live-pill">{isLive ? "LIVE" : "OFFLINE"}</span>
         <div className="stream-meta">
-           <div className="stream-title">
+          <div className="stream-title">
             {stream.place || "Unknown Location"} — Analytics
           </div>
           <div className="stream-subtitle">
             {stream.pilotName || "Unknown Pilot"}
           </div>
-         
         </div>
       </div>
 
-      {/* Video with seek slider */}
       <div className="stream-video-wrapper" style={{ marginTop: "0.6rem" }}>
         <video
           ref={videoRef}
@@ -155,7 +153,6 @@ function AnalyticsCard({
         />
       </div>
 
-      {/* Stream key */}
       <div style={{ marginTop: "0.6rem" }}>
         <div className="card-subtitle">Key</div>
         <code className="stream-key-value">{stream.streamKey}</code>
@@ -169,94 +166,89 @@ function AnalyticsCard({
 
       {hasAnyData && (
         <div style={{ marginTop: "0.8rem", display: "grid", gap: "0.75rem" }}>
-          {/* People block */}
-         {people && (
-  <div>
-    <div className="card-subtitle" style={{ fontWeight: 600 }}>
-      People
-    </div>
-    <div
-      style={{
-        display: "flex",
-        gap: "1.2rem",
-        flexWrap: "wrap",
-        marginTop: "0.3rem",
-      }}
-    >
-      <div>
-        <div className="card-subtitle">Unique (window)</div>
-        <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
-// Unique (window)
-{Number((people as any)?.totalUnique ?? (people as any)?.unique ?? 0)}
+          {people && (
+            <div>
+              <div className="card-subtitle" style={{ fontWeight: 600 }}>
+                People
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1.2rem",
+                  flexWrap: "wrap",
+                  marginTop: "0.3rem",
+                }}
+              >
+                <div>
+                  <div className="card-subtitle">Unique (window)</div>
+                  <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
+                    {Number(
+                      (people as any)?.totalUnique ??
+                        (people as any)?.unique ??
+                        0
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <div className="card-subtitle">In latest frame</div>
+                  <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
+                    {people.currentFrameCount ??
+                      (people as any).current ??
+                      0}
+                  </div>
+                </div>
+                <div>
+                  <div className="card-subtitle">Density</div>
+                  <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>
+                    {people.density ?? "—"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
-// In latest frame
-{Number((people as any)?.currentFrameCount ?? (people as any)?.current ?? 0)}
-
-// Density (string, no coercion needed)
-{(people as any)?.density ?? "—"}
+          {vehicles && (
+            <div>
+              <div className="card-subtitle" style={{ fontWeight: 600 }}>
+                Vehicles
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1.2rem",
+                  flexWrap: "wrap",
+                  marginTop: "0.3rem",
+                }}
+              >
+                <div>
+                  <div className="card-subtitle">Unique (window)</div>
+                  <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
+                    {Number(
+                      (vehicles as any)?.totalUnique ??
+                        (vehicles as any)?.unique ??
+                        0
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <div className="card-subtitle">In latest frame</div>
+                  <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
+                    {vehicles.currentFrameCount ??
+                      (vehicles as any).current ??
+                      0}
+                  </div>
+                </div>
+                <div>
+                  <div className="card-subtitle">Density</div>
+                  <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>
+                    {vehicles.density ?? "—"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-      <div>
-        <div className="card-subtitle">In latest frame</div>
-        <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
-          {people.currentFrameCount ?? (people as any).current ?? 0}
-        </div>
-      </div>
-      <div>
-        <div className="card-subtitle">Density</div>
-        <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>
-          {people.density ?? "—"}
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
-
-          {/* Vehicles block */}
-{vehicles && (
-  <div>
-    <div className="card-subtitle" style={{ fontWeight: 600 }}>
-      Vehicles
-    </div>
-    <div
-      style={{
-        display: "flex",
-        gap: "1.2rem",
-        flexWrap: "wrap",
-        marginTop: "0.3rem",
-      }}
-    >
-      <div>
-        <div className="card-subtitle">Unique (window)</div>
-        <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
-// Unique (window)
-{Number((vehicles as any)?.totalUnique ?? (vehicles as any)?.unique ?? 0)}
-
-// In latest frame
-{Number((vehicles as any)?.currentFrameCount ?? (vehicles as any)?.current ?? 0)}
-
-// Density (string, no coercion needed)
-{(vehicles as any)?.density ?? "—"}
-        </div>
-      </div>
-      <div>
-        <div className="card-subtitle">In latest frame</div>
-        <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
-          {vehicles.currentFrameCount ?? (vehicles as any).current ?? 0}
-        </div>
-      </div>
-      <div>
-        <div className="card-subtitle">Density</div>
-        <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>
-          {vehicles.density ?? "—"}
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
-
+      )}
 
       {!hasAnyData && !loadingAnalytics && (
         <div className="empty-state" style={{ marginTop: "0.7rem" }}>
@@ -275,10 +267,8 @@ export default function Analytics() {
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const analyzingRef = useRef(false);
 
-  // new: selected place filter
   const [selectedPlace, setSelectedPlace] = useState<string>("ALL");
 
-  // Fetch ALL streams (LIVE + ENDED)
   useEffect(() => {
     let cancelled = false;
 
@@ -311,7 +301,6 @@ export default function Analytics() {
     };
   }, []);
 
-  // derive unique places for dropdown
   const places = useMemo(() => {
     const set = new Set<string>();
     for (const s of streams) {
@@ -320,7 +309,6 @@ export default function Analytics() {
     return ["ALL", ...Array.from(set).sort()];
   }, [streams]);
 
-  // compute visible streams based on selectedPlace
   const visibleStreams = useMemo(() => {
     const filtered =
       selectedPlace && selectedPlace !== "ALL"
@@ -329,7 +317,6 @@ export default function Analytics() {
     return filtered;
   }, [streams, selectedPlace]);
 
-  // Run analytics for both people + vehicles
   useEffect(() => {
     if (visibleStreams.length === 0) return;
     if (analyzingRef.current) return;
@@ -397,17 +384,31 @@ export default function Analytics() {
 
   return (
     <div className="page">
-      <div className="page-header" style={{ display: "flex", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
+      <div
+        className="page-header"
+        style={{
+          display: "flex",
+          gap: "1rem",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <div style={{ flex: 1 }}>
           <h2>Analytics</h2>
           <p className="card-subtitle">
-            Live people & vehicle counts for each active or recorded drone stream.
+            Live people & vehicle counts for each active or recorded drone
+            stream.
           </p>
         </div>
 
-        {/* new: place selector dropdown */}
         <div style={{ minWidth: 180 }}>
-          <label style={{ display: "block", fontSize: "0.72rem", color: "var(--text-muted)" }}>
+          <label
+            style={{
+              display: "block",
+              fontSize: "0.72rem",
+              color: "var(--text-muted)",
+            }}
+          >
             Filter by place
           </label>
           <select
