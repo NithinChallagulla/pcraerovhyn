@@ -44,10 +44,11 @@ body {
 } 
 
 /* Navbar — normal document flow (not sticky/fixed) */ 
+/* Navbar — normal document flow (not sticky/fixed) */ 
 .navbar { 
   display: flex; 
   align-items: center; 
-  justify-content: center; /* Centered the app/navbar content */
+  justify-content: space-between; /* Changed from center to space-between */
   padding: 0.75rem 1.25rem; 
   background: linear-gradient(to right, #ffffff, #fff9e6, #ffe6e6); 
   border-bottom: 1px solid rgba(255, 212, 121, 0.18); 
@@ -57,7 +58,8 @@ body {
   z-index: 20; 
   white-space: nowrap; 
   min-width: 0; 
-} 
+}
+
 
 /* Navbar children */ 
 .navbar-left { 
