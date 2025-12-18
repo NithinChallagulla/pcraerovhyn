@@ -186,7 +186,14 @@ function AnalyticsCard({
       <div>
         <div className="card-subtitle">Unique (window)</div>
         <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
-          {people.totalUnique ?? (people as any).unique ?? 0}
+// Unique (window)
+{Number((people as any)?.totalUnique ?? (people as any)?.unique ?? 0)}
+
+// In latest frame
+{Number((people as any)?.currentFrameCount ?? (people as any)?.current ?? 0)}
+
+// Density (string, no coercion needed)
+{(people as any)?.density ?? "—"}
         </div>
       </div>
       <div>
@@ -223,7 +230,14 @@ function AnalyticsCard({
       <div>
         <div className="card-subtitle">Unique (window)</div>
         <div style={{ fontSize: "1.3rem", fontWeight: 600 }}>
-          {vehicles.totalUnique ?? (vehicles as any).unique ?? 0}
+// Unique (window)
+{Number((vehicles as any)?.totalUnique ?? (vehicles as any)?.unique ?? 0)}
+
+// In latest frame
+{Number((vehicles as any)?.currentFrameCount ?? (vehicles as any)?.current ?? 0)}
+
+// Density (string, no coercion needed)
+{(vehicles as any)?.density ?? "—"}
         </div>
       </div>
       <div>
