@@ -7,7 +7,7 @@ export default function Navbar() {
     <header className="navbar">
       {/* LEFT SIDE */}
       <div className="navbar-left">
-        <div className="logo-circle">ॐ</div>
+        <div className="logo-circle">AP POLICE</div>
         <div className="navbar-title">
           <h1>VIJAYAWADA POLICE CENTRAL DRONE COMMAND CONTROL</h1>
           <p>Drone Surveillance & Analytics Console powered by Aerovhyn Private Limited.</p>
