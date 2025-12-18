@@ -350,16 +350,22 @@ export default function Analytics() {
     // People analytics:
     // +2 every 10 seconds
     // +8 every 22 seconds
+    // -20 every 35 seconds (min 3)
     const peopleIncrements10s = Math.floor(elapsed / 10) * 2;
     const peopleIncrements22s = Math.floor(elapsed / 22) * 8;
-    const totalPeople = fakeData.people + peopleIncrements10s + peopleIncrements22s;
+    const peopleDecrements35s = Math.floor(elapsed / 35) * 20;
+    let totalPeople = fakeData.people + peopleIncrements10s + peopleIncrements22s - peopleDecrements35s;
+    totalPeople = Math.max(totalPeople, 3); // Min 3
 
     // Vehicles analytics:
     // +4 every 8 seconds
     // +6 every 25 seconds
+    // -20 every 35 seconds (min 3)
     const vehicleIncrements8s = Math.floor(elapsed / 8) * 4;
     const vehicleIncrements25s = Math.floor(elapsed / 25) * 6;
-    const totalVehicles = fakeData.vehicles + vehicleIncrements8s + vehicleIncrements25s;
+    const vehicleDecrements35s = Math.floor(elapsed / 35) * 20;
+    let totalVehicles = fakeData.vehicles + vehicleIncrements8s + vehicleIncrements25s - vehicleDecrements35s;
+    totalVehicles = Math.max(totalVehicles, 3); // Min 3
 
     return {
       people: {
