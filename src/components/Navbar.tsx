@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import policeLogo from "./policelogo.png";
-import aerovhynLogo from "./aerovhyn.png";
+import aerovhynLogo from "./aerovhyn (2).png";
 
 export default function Navbar() {
   return (
