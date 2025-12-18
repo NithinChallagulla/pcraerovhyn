@@ -267,9 +267,8 @@ export default function Analytics() {
 
   const [selectedPlace, setSelectedPlace] = useState<string>("ALL");
 
-  // Track fake data counters per stream key
-  const fakeDataRef = useRef<Record<string, { people: number; vehicles: number }>>({});
-  const startTimeRef = useRef<number>(Date.now());
+  // Track fake data counters per stream key - ONLY FOR LIVE STREAMS
+  const fakeDataRef = useRef<Record<string, { people: number; vehicles: number; startTime: number }>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -287,12 +286,13 @@ export default function Analytics() {
           );
           setStreams(sorted);
 
-          // Initialize fake data counters for each stream
+          // Initialize fake data counters ONLY for LIVE streams
           sorted.forEach((stream) => {
-            if (!fakeDataRef.current[stream.streamKey]) {
+            if (stream.status === "LIVE" && !fakeDataRef.current[stream.streamKey]) {
               fakeDataRef.current[stream.streamKey] = {
                 people: Math.floor(Math.random() * 50) + 10,
                 vehicles: Math.floor(Math.random() * 30) + 5,
+                startTime: Date.now(),
               };
             }
           });
@@ -329,24 +329,37 @@ export default function Analytics() {
     return filtered;
   }, [streams, selectedPlace]);
 
-  // Helper function to calculate fake increments based on elapsed time
-  const calculateFakeAnalytics = (streamKey: string) => {
-    const elapsed = (Date.now() - startTimeRef.current) / 1000; // elapsed seconds
-    const baseData = fakeDataRef.current[streamKey] || { people: 20, vehicles: 10 };
+  // Helper function to calculate fake increments ONLY for LIVE streams
+  const calculateFakeAnalytics = (stream: Stream) => {
+    const isLive = stream.status === "LIVE";
+
+    // If not LIVE, fetch from API
+    if (!isLive) {
+      return null;
+    }
+
+    const streamKey = stream.streamKey;
+    const fakeData = fakeDataRef.current[streamKey];
+
+    if (!fakeData) {
+      return null;
+    }
+
+    const elapsed = (Date.now() - fakeData.startTime) / 1000; // elapsed seconds
 
     // People analytics:
     // +2 every 10 seconds
     // +8 every 22 seconds
     const peopleIncrements10s = Math.floor(elapsed / 10) * 2;
     const peopleIncrements22s = Math.floor(elapsed / 22) * 8;
-    const totalPeople = baseData.people + peopleIncrements10s + peopleIncrements22s;
+    const totalPeople = fakeData.people + peopleIncrements10s + peopleIncrements22s;
 
     // Vehicles analytics:
     // +4 every 8 seconds
     // +6 every 25 seconds
     const vehicleIncrements8s = Math.floor(elapsed / 8) * 4;
     const vehicleIncrements25s = Math.floor(elapsed / 25) * 6;
-    const totalVehicles = baseData.vehicles + vehicleIncrements8s + vehicleIncrements25s;
+    const totalVehicles = fakeData.vehicles + vehicleIncrements8s + vehicleIncrements25s;
 
     return {
       people: {
@@ -375,14 +388,40 @@ export default function Analytics() {
         const results = await Promise.all(
           subset.map(async (stream) => {
             const key = stream.streamKey;
-            try {
-              // Generate fake analytics data based on elapsed time
-              const fakeData = calculateFakeAnalytics(key);
+            const isLive = stream.status === "LIVE";
 
-              const combined: CombinedAnalytics = {
-                people: fakeData.people as AnalyticsResponse,
-                vehicles: fakeData.vehicles as AnalyticsResponse,
-              };
+            try {
+              let combined: CombinedAnalytics = {};
+
+              if (isLive) {
+                // For LIVE streams, use fake data
+                const fakeData = calculateFakeAnalytics(stream);
+                if (fakeData) {
+                  combined.people = fakeData.people as AnalyticsResponse;
+                  combined.vehicles = fakeData.vehicles as AnalyticsResponse;
+                }
+              } else {
+                // For OFFLINE/recorded streams, fetch from API
+                const [peopleRes, vehicleRes] = await Promise.all([
+                  fetch(
+                    `${ANALYTICS_BASE}/analytics/people?streamKey=${encodeURIComponent(
+                      key
+                    )}`
+                  ),
+                  fetch(
+                    `${ANALYTICS_BASE}/analytics/vehicles?streamKey=${encodeURIComponent(
+                      key
+                    )}`
+                  ),
+                ]);
+
+                if (peopleRes.ok) {
+                  combined.people = (await peopleRes.json()) as AnalyticsResponse;
+                }
+                if (vehicleRes.ok) {
+                  combined.vehicles = (await vehicleRes.json()) as AnalyticsResponse;
+                }
+              }
 
               return { key, combined };
             } catch (err) {
