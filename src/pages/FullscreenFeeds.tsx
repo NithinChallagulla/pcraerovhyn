@@ -54,12 +54,31 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
   return videoRef;
 }
 
+// Inside StreamTile component
 function StreamTile({ stream }: { stream: Stream }) {
   const isLive = stream.status === "LIVE";
   const videoRef = useHlsPlayer(stream.hlsUrl, isLive);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleDoubleClick = () => {
+    if (containerRef.current) {
+      if (!document.fullscreenElement) {
+        containerRef.current.requestFullscreen().catch((err) => {
+          console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  };
 
   return (
-    <div className="fs-tile">
+    <div 
+      className="fs-tile" 
+      ref={containerRef} 
+      onDoubleClick={handleDoubleClick}
+      title="Double-click to expand"
+    >
       <video
         ref={videoRef}
         className="fs-video"
@@ -76,6 +95,8 @@ function StreamTile({ stream }: { stream: Stream }) {
     </div>
   );
 }
+
+// ... rest of the file stays the same
 
 export default function FullscreenFeeds() {
   const [streams, setStreams] = useState<Stream[]>([]);
