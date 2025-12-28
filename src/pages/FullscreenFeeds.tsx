@@ -138,17 +138,18 @@ export default function FullscreenFeeds() {
   }, []);
 
   /* 🔥 CORE LOGIC — FIXED */
+/* 🔥 CORE LOGIC — UPDATED */
   const liveStreams = streams
     .filter((s) => s.status === "LIVE")
     .slice(0, MAX_STREAMS);
 
   const count = liveStreams.length;
 
+  // Adjusted counts for better screen usage
   const columns =
-    count >= 13 ? 4 :
-    count >= 7  ? 3 :
-    count >= 3  ? 2 : 1;
-
+    count >= 10 ? 4 :
+    count >= 5  ? 3 :
+    count >= 2  ? 2 : 1;
   return (
     <div className="fs-page">
       <div
