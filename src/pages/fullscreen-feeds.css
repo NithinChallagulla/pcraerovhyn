@@ -69,17 +69,16 @@ body.__fullscreen-navbar-fixed .fs-page {
    -------------------------- */
 /* Grid height = viewport height minus navbar height (if navbar present). Using calc(100vh - var(--navbar-height))
    ensures no extra gap appears at bottom. */
+/* Change gap and padding to 0 for borderless look */
 .fs-grid {
   display: grid;
-  /* Keep your dynamic columns logic from JS */
   grid-auto-rows: 1fr; 
-  gap: 10px; /* Added a small gap for a cleaner 'tile' look */
+  gap: 0;             /* Changed from 10px to 0 */
   width: 100%;
   height: calc(100vh - var(--navbar-height));
-  padding: 10px;
+  padding: 0;         /* Changed from 10px to 0 */
   box-sizing: border-box;
   background: #000;
-  align-content: center; /* Centers the grid items vertically */
 }
 
 /* If the navbar-fixed class is NOT present (rare), fall back to full height grid */
@@ -101,10 +100,10 @@ body:not(. __fullscreen-navbar-fixed) .fs-grid,
 }
 
 .fs-video {
-  max-width: 100%;
-  max-height: 100%;
-  /* CHANGE THIS: 'contain' prevents stretching, 'cover' causes it */
-  object-fit: contain; 
+  width: 100%;        /* Changed from max-width */
+  height: 100%;       /* Changed from max-height */
+  /* 'cover' makes it fill the tile edge-to-edge without borders */
+  object-fit: cover;  
   display: block;
 }
 
