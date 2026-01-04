@@ -1,6 +1,5 @@
 // src/config.ts
 
-const isProd = import.meta.env.PROD;
 
 // ================= STREAMING SERVER =================
 // RTMP + HLS + Replay VM
