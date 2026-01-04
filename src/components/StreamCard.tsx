@@ -4,7 +4,7 @@ import Hls from "hls.js";
 import type { Stream } from "../config";
 
 /** 🔴 CHANGE ONLY THIS IF VM IP CHANGES */
-const STREAM_SERVER = "http://35.193.55.170";
+import { STREAM_SERVER } from "../config";
 
 function useHlsPlayer(hlsUrl: string, isLive: boolean) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
