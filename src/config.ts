@@ -3,14 +3,13 @@
 
 // ================= STREAMING SERVER =================
 // RTMP + HLS + Replay VM
-export const STREAM_SERVER = "http://35.193.55.170";
+export const API_BASE = "/api";
 
-// ================= API SERVER =================
-// Node.js API running on SAME VM (port 4000)
-export const API_BASE = "http://35.193.55.170:4000";
+// ================= HLS (via Netlify proxy) =================
+export const HLS_BASE = "/hls";
 
 // ================= ANALYTICS =================
-export const ANALYTICS_BASE = "http://34.93.170.150:8001";
+export const ANALYTICS_BASE = "/analytics-api";
 
 // ================= TYPES =================
 export type StreamStatus = "PENDING" | "LIVE" | "ENDED";
