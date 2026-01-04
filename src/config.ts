@@ -3,12 +3,12 @@
 const isProd = import.meta.env.PROD;
 
 // ================= STREAMING SERVER =================
+// RTMP + HLS + Replay VM
 export const STREAM_SERVER = "http://35.193.55.170";
 
 // ================= API SERVER =================
-export const API_BASE = isProd
-  ? "http://35.244.22.167:4000"
-  : "http://35.244.22.167:4000";
+// Node.js API running on SAME VM (port 4000)
+export const API_BASE = "http://35.193.55.170:4000";
 
 // ================= ANALYTICS =================
 export const ANALYTICS_BASE = "http://34.93.170.150:8001";
