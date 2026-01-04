@@ -1,12 +1,14 @@
 // src/config.ts
 
-export const STREAM_SERVER = "http://35.193.55.170";
+// ================= STREAMING (via Netlify proxy) =================
+export const STREAM_SERVER = ""; 
+// ⬆️ NOT used directly in browser anymore
 
-// ================= API SERVER =================
-export const API_BASE = "http://35.193.55.170:4000";
+// ================= API SERVER (Netlify redirect) =================
+export const API_BASE = "/api";
 
 // ================= ANALYTICS =================
-export const ANALYTICS_BASE = "http://34.93.170.150:8001";
+export const ANALYTICS_BASE = "/analytics-api";
 
 // ================= TYPES =================
 export type StreamStatus = "PENDING" | "LIVE" | "ENDED";
@@ -23,7 +25,6 @@ export interface Stream {
   startedAt?: number | null;
   endedAt?: number | null;
 }
-
 
 export interface AnalyticsResponse {
   streamKey: string;
