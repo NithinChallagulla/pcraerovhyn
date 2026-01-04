@@ -1,35 +1,21 @@
 // src/config.ts
 
 // Detect if we're on Netlify (build / production) or local dev
-// src/config.ts
-
 const isProd = import.meta.env.PROD;
 
-// RTMP / Streams backend (ingest VM)
-// ===== STREAMING VM =====
+// ===== STREAMING VM (HLS + REPLAY) =====
+// Single source of truth (NO duplicates)
 export const STREAM_SERVER = "http://35.193.55.170";
-// 🔴 STREAMING VM (HLS + Replay)
-export const STREAM_SERVER = import.meta.env.PROD
-  ? "http://35.193.55.170"
-  : "http://35.193.55.170";
 
 // ===== API BACKEND =====
 export const API_BASE = isProd
   ? "/api"
   : "http://35.244.22.167:4000";
 
-// Analytics backend
-// Analytics backend
-/*export const ANALYTICS_BASE = isProd
-  ? "/analytics-api/analytics"
-  : "http://34.93.170.150:8000/analytics";
-*/
+// ===== ANALYTICS BACKEND =====
 export const ANALYTICS_BASE = "http://34.93.170.150:8001";
 
-
-
-
-
+// ===== TYPES =====
 export type StreamStatus = "PENDING" | "LIVE" | "ENDED";
 
 export interface Stream {
