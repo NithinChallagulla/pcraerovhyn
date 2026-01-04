@@ -11,8 +11,8 @@ force = true
 # Analytics backend
 # -------------------------------
 [[redirects]]
-from = "/analytics-api/*"
-to = "http://34.93.170.150:8001/:splat"
+from = "/hls/*"
+to = "http://35.193.55.170/hls/:splat"
 status = 200
 force = true
 
