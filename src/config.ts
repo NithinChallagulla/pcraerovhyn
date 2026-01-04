@@ -8,6 +8,10 @@ const isProd = import.meta.env.PROD;
 // RTMP / Streams backend (ingest VM)
 // ===== STREAMING VM =====
 export const STREAM_SERVER = "http://35.193.55.170";
+// 🔴 STREAMING VM (HLS + Replay)
+export const STREAM_SERVER = import.meta.env.PROD
+  ? "http://35.193.55.170"
+  : "http://35.193.55.170";
 
 // ===== API BACKEND =====
 export const API_BASE = isProd
