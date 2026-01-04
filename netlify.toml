@@ -1,9 +1,9 @@
 # -------------------------------
-# RTMP / Streams backend (ingest VM)
+# API backend (Streaming VM)
 # -------------------------------
 [[redirects]]
 from = "/api/*"
-to = "http://35.244.22.167:4000/:splat"
+to = "http://35.193.55.170:4000/:splat"
 status = 200
 force = true
 
@@ -16,13 +16,12 @@ to = "http://34.93.170.150:8001/:splat"
 status = 200
 force = true
 
-
 # -------------------------------
-# HLS playback (ingest VM)
+# HLS playback (Streaming VM)
 # -------------------------------
 [[redirects]]
 from = "/hls/*"
-to = "http://35.244.22.167/hls/:splat"
+to = "http://35.193.55.170/hls/:splat"
 status = 200
 force = true
 
