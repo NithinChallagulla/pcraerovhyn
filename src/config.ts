@@ -6,6 +6,10 @@
 const isProd = import.meta.env.PROD;
 
 // RTMP / Streams backend (ingest VM)
+// ===== STREAMING VM =====
+export const STREAM_SERVER = "http://35.193.55.170";
+
+// ===== API BACKEND =====
 export const API_BASE = isProd
   ? "/api"
   : "http://35.244.22.167:4000";
