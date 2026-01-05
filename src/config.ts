@@ -1,40 +1,38 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+// src/config.ts
 
-import Layout from "./components/Layout";
-import ProtectedRoute from "./components/ProtectedRoute";
+// ================= STREAMING (via Netlify proxy) =================
+export const STREAM_SERVER = ""; 
+// ⬆️ NOT used directly in browser anymore
 
-import Login from "./pages/Login";
-import IncidentBridge from "./pages/IncidentBridge";
-import Master from "./pages/Master";
-import DroneFeeds from "./pages/DroneFeeds";
-import Analytics from "./pages/Analytics";
-import FullscreenFeeds from "./pages/FullscreenFeeds";
+// ================= API SERVER (Netlify redirect) =================
+export const API_BASE = "/api";
 
-export default function App() {
-  return (
-    <Routes>
-      {/* Public */}
-      <Route path="/login" element={<Login />} />
+// ================= ANALYTICS =================
+export const ANALYTICS_BASE = "/analytics-api";
 
-      {/* Protected */}
-      <Route
-        path="/*"
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Navigate to="/master" replace />} />
-        <Route path="incident-bridge" element={<IncidentBridge />} />
-        <Route path="master" element={<Master />} />
-        <Route path="feeds" element={<DroneFeeds />} />
-        <Route path="analytics" element={<Analytics />} />
-        <Route path="fullscreen" element={<FullscreenFeeds />} />
-      </Route>
+// ================= TYPES =================
+export type StreamStatus = "PENDING" | "LIVE" | "ENDED";
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
-  );
+export interface Stream {
+  id: string;
+  pilotName: string;
+  place: string;
+  streamKey: string;
+  rtmpUrl: string;
+  hlsUrl: string;
+  status: StreamStatus;
+  createdAt?: number;
+  startedAt?: number | null;
+  endedAt?: number | null;
+}
+
+export interface AnalyticsResponse {
+  streamKey: string;
+  windowSeconds: number;
+  totalUnique: number;
+  currentFrameCount: number;
+  density: string;
+  model: string;
+  analyzedFrames: number;
+  timestamp: number;
 }
