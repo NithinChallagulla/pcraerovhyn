@@ -1,34 +1,43 @@
 // src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
-import Layout from "./components/Layout";
-import IncidentBridge from "./pages/IncidentBridge";
 
+import Layout from "./components/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+import Login from "./pages/Login";
+import IncidentBridge from "./pages/IncidentBridge";
 import Master from "./pages/Master";
 import DroneFeeds from "./pages/DroneFeeds";
-import Analytics from "./pages/Analytics"; // combined page
-
-// NEW: Fullscreen / Command Hub view
+import Analytics from "./pages/Analytics";
 import FullscreenFeeds from "./pages/FullscreenFeeds";
 
 export default function App() {
   return (
-    <Layout>
-      <Routes>
-        {/* Default → /master */}
-        <Route path="/" element={<Navigate to="/master" replace />} />
+    <Routes>
 
-        {/* existing pages */}
-        <Route path="/incident-bridge" element={<IncidentBridge />} />
-        <Route path="/master" element={<Master />} />
-        <Route path="/feeds" element={<DroneFeeds />} />
-        <Route path="/analytics" element={<Analytics />} />
+      {/* 🔓 ONLY public route */}
+      <Route path="/login" element={<Login />} />
 
-        {/* NEW: full-screen command hub (3x3 CCTV view) */}
-        <Route path="/fullscreen" element={<FullscreenFeeds />} />
+      {/* 🔒 Everything else is protected */}
+      <Route
+        path="/*"
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Navigate to="/master" replace />} />
+        <Route path="incident-bridge" element={<IncidentBridge />} />
+        <Route path="master" element={<Master />} />
+        <Route path="feeds" element={<DroneFeeds />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="fullscreen" element={<FullscreenFeeds />} />
+      </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/master" replace />} />
-      </Routes>
-    </Layout>
+      {/* fallback */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+
+    </Routes>
   );
 }
