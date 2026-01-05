@@ -1,11 +1,7 @@
 import { Navigate } from "react-router-dom";
 import React from "react";
 
-type Props = {
-  children: React.ReactNode;
-};
-
-export default function ProtectedRoute({ children }: Props) {
+export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuth = localStorage.getItem("aerovhyn_auth") === "true";
 
   if (!isAuth) {
