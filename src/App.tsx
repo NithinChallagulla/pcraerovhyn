@@ -1,4 +1,3 @@
-// src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import Layout from "./components/Layout";
@@ -14,11 +13,10 @@ import FullscreenFeeds from "./pages/FullscreenFeeds";
 export default function App() {
   return (
     <Routes>
-
-      {/* 🔓 ONLY public route */}
+      {/* Public */}
       <Route path="/login" element={<Login />} />
 
-      {/* 🔒 Everything else is protected */}
+      {/* Protected */}
       <Route
         path="/*"
         element={
@@ -35,9 +33,8 @@ export default function App() {
         <Route path="fullscreen" element={<FullscreenFeeds />} />
       </Route>
 
-      {/* fallback */}
+      {/* Fallback */}
       <Route path="*" element={<Navigate to="/login" replace />} />
-
     </Routes>
   );
 }
