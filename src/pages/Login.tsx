@@ -9,7 +9,7 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    if (username === "admin" && password === "aerovhyn@123") {
+    if (username === "admin" && password === "commandcontrol") {
       localStorage.setItem("aerovhyn_auth", "true");
       navigate("/master");
     } else {
