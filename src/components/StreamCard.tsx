@@ -6,16 +6,20 @@ import type { Stream } from "../config";
 /** 🔴 CHANGE ONLY THIS IF VM IP CHANGES */
 import { STREAM_SERVER } from "../config";
 
-function useHlsPlayer(hlsUrl: string, isLive: boolean) {
+function useHlsPlayer(liveUrl: string, replayUrl: string) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  const sourceRef = useRef<"LIVE" | "BUFFER">("LIVE");
 
-  if (!hlsUrl) return videoRef;
-
-  (function attach() {
+  const attach = (url: string, isLive: boolean) => {
     const video = videoRef.current;
     if (!video) return;
 
-    let hls: Hls | null = null;
+    // cleanup
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
 
     video.muted = true;
     video.loop = !isLive;
@@ -28,52 +32,66 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
     };
 
     if (Hls.isSupported()) {
-      const config = isLive
-        ? {
-            enableWorker: true,
-            lowLatencyMode: true,
-            liveSyncDuration: 1,
-            liveMaxLatencyDuration: 2,
-            backBufferLength: 0,
-            maxBufferLength: 5,
-          }
-        : {
-            enableWorker: true,
-            lowLatencyMode: false,
-            backBufferLength: 30,
-            maxBufferLength: 30,
-          };
+      const hls = new Hls(
+        isLive
+          ? {
+              enableWorker: true,
+              lowLatencyMode: true,
+              liveSyncDuration: 1,
+              liveMaxLatencyDuration: 2,
+              backBufferLength: 0,
+              maxBufferLength: 5,
+            }
+          : {
+              enableWorker: true,
+              lowLatencyMode: false,
+              backBufferLength: 30,
+              maxBufferLength: 30,
+            }
+      );
 
-      hls = new Hls(config);
-      try {
-        hls.loadSource(hlsUrl);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, safePlay);
-        hls.on(Hls.Events.FRAG_LOADED, safePlay);
-      } catch (err) {
-        console.error("HLS error:", err);
-      }
+      hlsRef.current = hls;
+      hls.loadSource(url);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, safePlay);
+      hls.on(Hls.Events.FRAG_LOADED, safePlay);
+
+      hls.on(Hls.Events.ERROR, (_, data) => {
+        if (data.fatal && sourceRef.current === "LIVE") {
+          console.warn("LIVE failed → switching to BUFFER");
+          sourceRef.current = "BUFFER";
+          attach(replayUrl, false);
+        }
+      });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = hlsUrl;
+      video.src = url;
       video.addEventListener("loadedmetadata", safePlay);
     }
+  };
 
-    const cleanup = () => {
-      try {
-        if (hls) hls.destroy();
-      } catch {}
-      try {
-        video.removeAttribute("src");
-        // @ts-ignore
-        video.load?.();
-      } catch {}
-    };
+  // initial attach + polling
+  if (videoRef.current && !hlsRef.current) {
+    attach(liveUrl, true);
 
-    window.addEventListener("beforeunload", cleanup);
-  })();
+    // poll for LIVE recovery
+    setInterval(async () => {
+      if (sourceRef.current === "BUFFER") {
+        try {
+          const res = await fetch(liveUrl, { cache: "no-store" });
+          if (res.ok) {
+            console.warn("LIVE back → switching");
+            sourceRef.current = "LIVE";
+            attach(liveUrl, true);
+          }
+        } catch {}
+      }
+    }, 5000);
+  }
 
   return videoRef;
 }
+
 
 export default function StreamCard({ stream }: { stream: Stream }) {
   const isLive = stream.status === "LIVE";
@@ -83,7 +101,7 @@ export default function StreamCard({ stream }: { stream: Stream }) {
   const replayUrl = `${STREAM_SERVER}/replay/${stream.streamKey}.m3u8`;
   const selectedUrl = isLive ? liveUrl : replayUrl;
 
-  const videoRef = useHlsPlayer(selectedUrl, isLive);
+const videoRef = useHlsPlayer(liveUrl, replayUrl);
   const [showLinks, setShowLinks] = useState(false);
 
   const handleFullscreen = () => {
