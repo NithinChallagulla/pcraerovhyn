@@ -1,7 +1,7 @@
 // src/config.ts
 
 // ================= STREAMING (via Netlify proxy) =================
-export const STREAM_SERVER = ""; 
+export const STREAM_SERVER = "";
 // ⬆️ NOT used directly in browser anymore
 
 // ================= API SERVER (Netlify redirect) =================
