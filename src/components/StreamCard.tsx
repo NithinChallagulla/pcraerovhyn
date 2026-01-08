@@ -94,14 +94,13 @@ function useHlsPlayer(liveUrl: string, replayUrl: string) {
 
 
 export default function StreamCard({ stream }: { stream: Stream }) {
-  const isLive = stream.status === "LIVE";
+ const isLive = stream.status === "LIVE";
 
-  /** 🔁 AUTO SWITCH URL */
-  const liveUrl = `${STREAM_SERVER}/hls/${stream.streamKey}.m3u8`;
-  const replayUrl = `${STREAM_SERVER}/replay/${stream.streamKey}.m3u8`;
-  const selectedUrl = isLive ? liveUrl : replayUrl;
+const liveUrl = `${STREAM_SERVER}/hls/${stream.streamKey}.m3u8`;
+const replayUrl = `${STREAM_SERVER}/buffer/fallback.m3u8`;
 
 const videoRef = useHlsPlayer(liveUrl, replayUrl);
+
   const [showLinks, setShowLinks] = useState(false);
 
   const handleFullscreen = () => {
