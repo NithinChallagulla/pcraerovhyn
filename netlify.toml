@@ -3,7 +3,7 @@
 # -------------------------------
 [[redirects]]
 from = "/api/*"
-to = "http://35.193.55.170:4000/:splat"
+to = "http://34.47.190.236/:splat"
 status = 200
 force = true
 
@@ -12,7 +12,7 @@ force = true
 # -------------------------------
 [[redirects]]
 from = "/hls/*"
-to = "http://35.193.55.170/hls/:splat"
+to = "http://34.47.190.236/hls/:splat"
 status = 200
 force = true
 
@@ -21,7 +21,7 @@ force = true
 # -------------------------------
 [[redirects]]
 from = "/hls/*"
-to = "http://35.193.55.170/hls/:splat"
+to = "http://34.47.190.236/hls/:splat"
 status = 200
 force = true
 
