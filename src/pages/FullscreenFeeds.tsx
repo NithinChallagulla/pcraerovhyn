@@ -7,19 +7,31 @@ import "./fullscreen-feeds.css";
 const REFRESH_MS = 8000;
 const MAX_STREAMS = 16;
 
-function useHlsPlayer(hlsUrl: string, isLive: boolean) {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+// 🔒 STREAM URLS
+const LIVE_URL   = "http://34.47.190.236/live/test.m3u8";
+const REPLAY_URL = "http://34.47.190.236/replay/replay.m3u8";
 
-  useEffect(() => {
+/* =========================
+   HLS PLAYER WITH FALLBACK
+   ========================= */
+function useHlsPlayerWithFallback() {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  const [source, setSource] = useState<"LIVE" | "REPLAY">("LIVE");
+
+  const attach = (url: string, lowLatency: boolean) => {
     const video = videoRef.current;
     if (!video) return;
 
-    let hls: Hls | null = null;
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
 
     video.muted = true;
     video.playsInline = true;
 
-    const safePlay = () => {
+    const playSafe = () => {
       try {
         const p = video.play();
         if (p && (p as any).catch) (p as any).catch(() => {});
@@ -27,57 +39,76 @@ function useHlsPlayer(hlsUrl: string, isLive: boolean) {
     };
 
     if (Hls.isSupported()) {
-      hls = new Hls({
+      const hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: isLive,
-        backBufferLength: isLive ? 0 : 30,
-        maxBufferLength: isLive ? 5 : 30,
+        lowLatencyMode: lowLatency,
+        maxBufferLength: lowLatency ? 5 : 30,
+        backBufferLength: lowLatency ? 0 : 30,
       });
-      hls.loadSource(hlsUrl);
+
+      hls.loadSource(url);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, safePlay);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, playSafe);
+
+      hls.on(Hls.Events.ERROR, (_, data) => {
+        if (data.fatal && source === "LIVE") {
+          setSource("REPLAY");
+        }
+      });
+
+      hlsRef.current = hls;
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = hlsUrl;
-      video.addEventListener("loadedmetadata", safePlay);
+      video.src = url;
+      video.addEventListener("loadedmetadata", playSafe);
     }
+  };
 
+  // 🔁 Attach on source change
+  useEffect(() => {
+    attach(source === "LIVE" ? LIVE_URL : REPLAY_URL, source === "LIVE");
     return () => {
-      if (hls) hls.destroy();
-      if (video) {
-        video.removeAttribute("src");
-        // @ts-ignore
-        video.load?.();
-      }
+      hlsRef.current?.destroy();
     };
-  }, [hlsUrl, isLive]);
+  }, [source]);
 
-  return videoRef;
+  // 🔄 Background LIVE checker
+  useEffect(() => {
+    const id = setInterval(async () => {
+      if (source === "REPLAY") {
+        try {
+          const r = await fetch(LIVE_URL, { method: "HEAD", cache: "no-store" });
+          if (r.ok) setSource("LIVE");
+        } catch {}
+      }
+    }, 5000);
+
+    return () => clearInterval(id);
+  }, [source]);
+
+  return { videoRef, source };
 }
 
-// Inside StreamTile component
+/* =========================
+   STREAM TILE
+   ========================= */
 function StreamTile({ stream }: { stream: Stream }) {
-  const isLive = stream.status === "LIVE";
-  const videoRef = useHlsPlayer(stream.hlsUrl, isLive);
+  const { videoRef, source } = useHlsPlayerWithFallback();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleDoubleClick = () => {
-    if (containerRef.current) {
-      if (!document.fullscreenElement) {
-        containerRef.current.requestFullscreen().catch((err) => {
-          console.error(`Error attempting to enable full-screen mode: ${err.message}`);
-        });
-      } else {
-        document.exitFullscreen();
-      }
+    if (!document.fullscreenElement) {
+      containerRef.current?.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen();
     }
   };
 
   return (
-    <div 
-      className="fs-tile" 
-      ref={containerRef} 
+    <div
+      className="fs-tile"
+      ref={containerRef}
       onDoubleClick={handleDoubleClick}
-      title="Double-click to expand"
     >
       <video
         ref={videoRef}
@@ -86,9 +117,12 @@ function StreamTile({ stream }: { stream: Stream }) {
         autoPlay
         playsInline
       />
+
       <div className="fs-overlay">
         <div className="fs-overlay-left">
-          <div className="fs-pill live">LIVE</div>
+          <div className={`fs-pill ${source === "LIVE" ? "live" : "replay"}`}>
+            {source}
+          </div>
           <div className="fs-place">{stream.place}</div>
         </div>
       </div>
@@ -96,8 +130,9 @@ function StreamTile({ stream }: { stream: Stream }) {
   );
 }
 
-// ... rest of the file stays the same
-
+/* =========================
+   MAIN PAGE
+   ========================= */
 export default function FullscreenFeeds() {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [loading, setLoading] = useState(false);
@@ -122,7 +157,6 @@ export default function FullscreenFeeds() {
         const data: Stream[] = await res.json();
         if (!cancelled) setStreams(data);
       } catch (err: any) {
-        console.error(err);
         if (!cancelled) setError(err.message);
       } finally {
         if (!cancelled) setLoading(false);
@@ -137,19 +171,13 @@ export default function FullscreenFeeds() {
     };
   }, []);
 
-  /* 🔥 CORE LOGIC — FIXED */
-/* 🔥 CORE LOGIC — UPDATED */
-  const liveStreams = streams
-    .filter((s) => s.status === "LIVE")
-    .slice(0, MAX_STREAMS);
+  const count = Math.min(streams.length, MAX_STREAMS);
 
-  const count = liveStreams.length;
-
-  // Adjusted counts for better screen usage
   const columns =
     count >= 10 ? 4 :
     count >= 5  ? 3 :
     count >= 2  ? 2 : 1;
+
   return (
     <div className="fs-page">
       <div
@@ -157,9 +185,9 @@ export default function FullscreenFeeds() {
         style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
       >
         {count === 0 && !loading && !error ? (
-          <div className="fs-empty">No LIVE streams</div>
+          <div className="fs-empty">No streams</div>
         ) : (
-          liveStreams.map((s) => (
+          streams.slice(0, MAX_STREAMS).map((s) => (
             <StreamTile key={s.streamKey} stream={s} />
           ))
         )}
